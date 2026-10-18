@@ -1,0 +1,24 @@
+slug: rulinwaishi
+title: 儒林外史
+author: 吴敬梓
+category: classics
+format: markdown
+access: excerpt
+year: 清
+description: 一部没有主角的长篇小说，写尽读书人的体面与狼狈。科举是梯子，也是笼子。
+cover: /covers/rulinwaishi.svg
+accent: "#5a5c58"
+tags:
+  - 古典小说
+  - 讽刺
+  - 科举
+order: 8
+motif: bamboo
+readingTime: 约 10 分钟
+source:
+  label: 维基文库 · 儒林外史
+  url: https://zh.wikisource.org/wiki/%E5%84%92%E6%9E%97%E5%A4%96%E5%8F%B2
+license:
+  name: 公版作品
+  url: https://zh.wikisource.org/wiki/%E5%84%92%E6%9E%97%E5%A4%96%E5%8F%B2
+note: 本站收录导读与公版书摘，全文可在维基文库免费阅读。

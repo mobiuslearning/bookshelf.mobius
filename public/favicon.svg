@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="6" fill="#1a100b"/>
+  <rect x="7" y="7" width="50" height="50" rx="2" fill="none" stroke="#c9a86a" stroke-width="1.5"/>
+  <rect x="11" y="11" width="42" height="42" rx="1" fill="none" stroke="#c9a86a" stroke-width="0.6" opacity="0.45"/>
+  <text x="32" y="45" text-anchor="middle" font-family="Songti SC, Noto Serif SC, serif" font-size="32" fill="#e9d8b8">木</text>
+</svg>

@@ -1,0 +1,24 @@
+slug: liaozhaizhiyi
+title: 聊斋志异
+author: 蒲松龄
+category: classics
+format: markdown
+access: excerpt
+year: 清
+description: 写鬼写妖，也写人世。蒲松龄让狐鬼比人更有情义，让荒诞替现实说真话。
+cover: /covers/liaozhaizhiyi.svg
+accent: "#4b3a5a"
+tags:
+  - 古典小说
+  - 志怪
+  - 短篇
+order: 7
+motif: lantern
+readingTime: 约 10 分钟
+source:
+  label: 维基文库 · 聊斋志异
+  url: https://zh.wikisource.org/wiki/%E8%81%8A%E9%BD%8B%E5%BF%97%E7%95%B0
+license:
+  name: 公版作品
+  url: https://zh.wikisource.org/wiki/%E8%81%8A%E9%BD%8B%E5%BF%97%E7%95%B0
+note: 本站收录导读与公版书摘，全文可在维基文库免费阅读。

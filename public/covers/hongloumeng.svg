@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8f4a47"/>
+      <stop offset="0.45" stop-color="#7c2f35"/>
+      <stop offset="1" stop-color="#421c1d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.18" r="0.9">
+      <stop offset="0" stop-color="#ffe9c0" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#ffe9c0" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.08"/></feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="600" height="900" fill="url(#bg)"/>
+  <g><path d="M28 28H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 53H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 78H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 103H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 128H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 153H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 178H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 203H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 228H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 253H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 278H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 303H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 328H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 353H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 378H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 403H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 428H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 453H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 478H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 503H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 528H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 553H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 578H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 603H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 628H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 653H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 678H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 703H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 728H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 753H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 778H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 803H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 828H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/><path d="M28 853H572" stroke="#864045" stroke-width="0.6" opacity="0.12"/></g>
+  <rect width="600" height="900" fill="url(#glow)"/>
+  
+    <g stroke="#c9a86a" stroke-width="1.5" fill="none" opacity="0.8">
+      <path d="M52 92V52h40M508 52h40v40M548 808v40h-40M92 848H52v-40"/>
+      <path d="M64 104V64h40M496 64h40v40M536 796v40h-40M104 836H64v-40" opacity="0.45"/>
+      <path d="M300 44l8 8-8 8-8-8zM300 840l8 8-8 8-8-8z" fill="#c9a86a" stroke="none"/>
+    </g>
+  <rect x="28" y="28" width="544" height="844" fill="none" stroke="#c9a86a" stroke-width="1.4" opacity="0.55"/>
+  <rect x="38" y="38" width="524" height="824" fill="none" stroke="#c9a86a" stroke-width="0.7" opacity="0.4"/>
+  
+      <g fill="none" stroke="#c9a86a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.3">
+        <path d="M92 420c46-66 84-132 90-206M126 348c40-10 72-26 92-52M172 258c-28-6-46-22-56-44M238 214c24-8 42-24 52-46"/>
+        <g fill="#c9a86a" stroke="none">
+          <circle cx="126" cy="300" r="9"/><circle cx="152" cy="276" r="7"/>
+          <circle cx="206" cy="228" r="8"/><circle cx="252" cy="196" r="7"/>
+          <circle cx="96" cy="344" r="6"/><circle cx="180" cy="252" r="5"/>
+        </g>
+      </g>
+  <text x="300" y="96" text-anchor="middle" font-family="'Cormorant Garamond',Georgia,serif" font-size="17" letter-spacing="7" fill="#c9a86a" opacity="0.9">木間書齋 · 藏本</text>
+  <text x="378" y="222" text-anchor="middle" font-family="'Songti SC','Noto Serif SC','Source Han Serif SC',serif" font-size="100" font-weight="600" fill="#f1e6cd" opacity="1" letter-spacing="0"><tspan x="378" dy="0">红</tspan><tspan x="378" dy="112">楼</tspan><tspan x="378" dy="112">梦</tspan></text>
+  <text x="468" y="446" text-anchor="middle" font-family="'Songti SC','Noto Serif SC','Source Han Serif SC',serif" font-size="20" font-weight="400" fill="#f1e6cd" opacity="0.78" letter-spacing="0"><tspan x="468" dy="0">曹</tspan><tspan x="468" dy="24">雪</tspan><tspan x="468" dy="24">芹</tspan></text>
+  <g transform="translate(300 686)">
+    <rect x="-34" y="-34" width="68" height="68" rx="3" fill="#9e3c32" opacity="0.92"/>
+    <text x="0" y="4" text-anchor="middle" font-family="'Songti SC','Noto Serif SC',serif" font-size="30" fill="#f1e6cd">藏</text>
+  </g>
+  <path d="M105 726h120" stroke="#c9a86a" stroke-width="0.8" opacity="0.65"/>
+  <text x="105" y="756" font-family="'Cormorant Garamond',Georgia,serif" font-size="13" letter-spacing="4" fill="#f1e6cd" opacity="0.7">THE WOODEN SHELF</text>
+  <text x="105" y="790" font-family="'Songti SC','Noto Serif SC',serif" font-size="13" fill="#f1e6cd" opacity="0.62">清 · 乾隆年间</text>
+  <rect width="600" height="900" filter="url(#grain)" opacity="0.5"/>
+  <rect width="600" height="900" fill="none" stroke="#000" stroke-width="18" opacity="0.12"/>
+</svg>

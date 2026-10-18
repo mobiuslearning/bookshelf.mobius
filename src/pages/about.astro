@@ -1,0 +1,688 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Icon from "../components/Icon.astro";
+import { categories, site } from "../data/site";
+import { getBooks, getChapters } from "../lib/library";
+
+const books = await getBooks();
+const chapters = await getChapters();
+const stats = { books: books.length, chapters: chapters.length };
+
+const treeExample = `src/content/library/
+└── own/
+    └── my-book/
+        ├── book.yaml
+        └── chapters/
+            ├── 01.md
+            └── 02.md`;
+
+const yamlExample = `slug: my-book
+title: 我的新书
+author: 木间主人
+category: own
+description: 一本刚刚放上书架的书。
+cover: /covers/my-book.svg
+accent: "#6b6a3c"
+motif: leaf
+order: 4`;
+
+const chapterExample = `---
+title: 第一篇
+book: my-book
+order: 1
+summary: 一句话介绍这一篇。
+---
+
+正文从这里开始。`;
+
+const pdfCommand = `# 把 PDF / EPUB / TXT / Markdown 文件收进书架
+pnpm book:new -- --title "一本书" --author "作者" --category classics --file ./book.pdf`;
+
+const formatRows = [
+  ["markdown", "站内全文阅读", "自己写的作品、已有的 Markdown 手稿"],
+  ["pdf", "站内 PDF 翻阅 + 下载", "排版已经固定的电子书、小册子"],
+  ["epub", "提供下载，在阅读器中打开", "带目录和样式的电子书"],
+  ["txt", "导入时自动拆成章节", "纯文本旧稿、笔记"],
+  ["link", "指到原站的入口", "只想收藏、不在本站放全文的书"],
+];
+---
+
+<BaseLayout
+  title="关于这间书房"
+  description={`${site.name}的故事、藏书结构与添书指南。`}
+  bodyClass="about-page"
+>
+  <main id="main">
+    <section class="about-hero">
+      <div class="about-hero__bg" aria-hidden="true">
+        <div class="about-hero__beam"></div>
+        <div class="about-hero__grain"></div>
+      </div>
+      <div class="shell about-hero__inner">
+        <div class="about-title-wrap">
+          <p class="eyebrow">ABOUT THE LIBRARY · {site.startYear}</p>
+          <h1>关于<br /><span>这间书房</span></h1>
+          <span class="about-seal" aria-hidden="true">書</span>
+        </div>
+        <div class="about-intro">
+          <p class="about-lead">
+            一间用木头、纸页和光搭起来的私人书房。
+          </p>
+          <p>
+            没有排行榜，没有“本月必读”。只有三层书架：经典名著、当下热门、我的作品。
+            有的书收录全文，有的只放导读和书摘，有的只是一枚指向原处的书签。
+          </p>
+          <p>
+            书架现在有 {stats.books} 册、{stats.chapters} 篇可读内容。
+            它不追求一次成形，只希望每次添书，都像把一本新书塞进已经住惯了的架子。
+          </p>
+          <div class="about-actions">
+            <a class="btn btn--brass" href="/#shelf">回到书架 <Icon name="arrow-right" size={15} /></a>
+            <a class="btn btn--ghost" href="#add-book">怎样添书</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-section shell">
+      <header class="section-head">
+        <p class="eyebrow">THREE SHELVES</p>
+        <h2>三层书架</h2>
+      </header>
+      <div class="shelf-cards">
+        {categories.map((category) => {
+          const count = books.filter((book) => book.data.category === category.key).length;
+          return (
+            <a class="shelf-card" href={`/#${category.key}`}>
+              <span class="shelf-card__num">{category.numeral}</span>
+              <span class="shelf-card__label">{category.label}</span>
+              <span class="shelf-card__desc">{category.description}</span>
+              <span class="shelf-card__foot">
+                <span>{count} 册</span>
+                <span class="shelf-card__arrow"><Icon name="arrow-right" size={14} /></span>
+              </span>
+            </a>
+          );
+        })}
+      </div>
+    </section>
+
+    <section class="about-section shell" id="add-book">
+      <header class="section-head section-head--wide">
+        <div>
+          <p class="eyebrow">ADD A BOOK</p>
+          <h2>怎样添一本书</h2>
+        </div>
+        <p class="section-head__note">
+          书架是静态的，但添书不需要懂前端。推荐用一条命令完成；
+          也可以直接编辑 Markdown 和 YAML 文件。
+        </p>
+      </header>
+
+      <div class="steps">
+        <article class="step-card step-card--accent">
+          <span class="step-num">01</span>
+          <h3>用命令上架</h3>
+          <p>在项目根目录运行，按提示填写书名、作者、分类和文件路径。封面会自动生成。</p>
+          <pre><code>pnpm book:new</code></pre>
+          <p class="step-hint">支持 PDF、EPUB、TXT、Markdown；也可以直接指定参数，不进入问答。</p>
+        </article>
+
+        <article class="step-card">
+          <span class="step-num">02</span>
+          <h3>自己的作品：加 Markdown</h3>
+          <p>每本书一个文件夹，<code>book.yaml</code> 存放元数据，<code>chapters/</code> 下按顺序放 Markdown。</p>
+          <pre><code>{treeExample}</code></pre>
+          <p class="step-hint">分类写 <code>own</code>，就会出现在「我的作品」这一层。</p>
+        </article>
+
+        <article class="step-card">
+          <span class="step-num">03</span>
+          <h3>其他作品：PDF / EPUB / TXT</h3>
+          <p>加 <code>--file</code> 指向本地文件。PDF 会放进站内翻阅页，EPUB 提供下载；TXT 会自动拆成章节。</p>
+          <pre><code>{pdfCommand}</code></pre>
+          <p class="step-hint">文件会被复制到 <code>public/library/&lt;slug&gt;/</code>，不会改动你的原文件。</p>
+        </article>
+      </div>
+
+      <div class="guide-grid">
+        <div class="guide-block">
+          <h3>book.yaml 的最小写法</h3>
+          <pre><code>{yamlExample}</code></pre>
+          <p>其余字段都有默认值。封面可以放自己的图片，也可以交给 <code>pnpm covers</code> 生成。</p>
+        </div>
+        <div class="guide-block">
+          <h3>一篇 Markdown 长什么样</h3>
+          <pre><code>{chapterExample}</code></pre>
+          <p>标题、顺序和一句话摘要放在 frontmatter 里，正文用普通 Markdown 写。</p>
+        </div>
+      </div>
+
+      <div class="format-table-wrap">
+        <table class="format-table">
+          <thead>
+            <tr>
+              <th>格式</th>
+              <th>上架后的样子</th>
+              <th>适合放什么</th>
+            </tr>
+          </thead>
+          <tbody>
+            {formatRows.map((row) => (
+              <tr>
+                <td><code>{row[0]}</code></td>
+                <td>{row[1]}</td>
+                <td>{row[2]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="guide-note">
+        <Icon name="book" size={18} />
+        <p>
+          添完书后运行 <code>pnpm dev</code> 预览，或 <code>pnpm build</code> 生成静态文件。
+          新增的封面会出现在 <code>public/covers/</code>；想重新设计，改 <code>book.yaml</code> 里的
+          <code>accent</code> 与 <code>motif</code>，再运行 <code>pnpm covers --force</code>。
+        </p>
+      </div>
+    </section>
+
+    <section class="about-section shell">
+      <header class="section-head">
+        <p class="eyebrow">COLOPHON</p>
+        <h2>版本与来处</h2>
+      </header>
+      <div class="colophon-grid">
+        <div class="colophon-card">
+          <h3>关于内容</h3>
+          <p>
+            《高性价比人生指南》全文来自
+            <a href="https://github.com/eternity4719/HowToLiveBetter" target="_blank" rel="noreferrer">eternity4719/HowToLiveBetter</a>，
+            作者 eternity4719，依
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>
+            许可收录并署名。书中内容为一般信息，不构成医疗、法律或财务建议。
+          </p>
+          <p>经典名著为公版作品，本站收录原创导读与短书摘，并链接到可免费阅读全文的站点。</p>
+          <p>「我的作品」中的三本文集是示例内容，用来演示 Markdown 上架流程，可替换成你自己的文字。</p>
+        </div>
+        <div class="colophon-card">
+          <h3>关于实现</h3>
+          <p>
+            使用 <a href="https://astro.build" target="_blank" rel="noreferrer">Astro</a> 构建静态站点，
+            <a href="https://tailwindcss.com" target="_blank" rel="noreferrer">Tailwind CSS</a> 处理布局与主题；
+            书架的 3D 厚度、抽出效果和纸张质感主要由 CSS 完成。
+          </p>
+          <p>木纹与纸纹来自本地程序化生成的纹理，没有远程图片依赖；站点可以整体部署到任意静态托管。</p>
+          <ul class="tech-list">
+            <li>Astro 6 · Content Collections</li>
+            <li>Tailwind CSS 4</li>
+            <li>CSS 3D · IntersectionObserver · View Transitions</li>
+            <li>Markdown · YAML · 本地 SVG 封面</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .about-page main {
+    padding-top: var(--header-h);
+  }
+
+  .about-hero {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(3rem, 8vw, 7rem) 0 clamp(3rem, 7vw, 6rem);
+    isolation: isolate;
+  }
+  .about-hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(90deg, rgba(11, 7, 4, 0.86), rgba(11, 7, 4, 0.35) 60%, rgba(11, 7, 4, 0.62)),
+      url("/textures/wood-wall.jpg") center / cover;
+  }
+  .about-hero__beam {
+    position: absolute;
+    inset: -20% 0 auto;
+    height: 80%;
+    background: radial-gradient(50% 70% at 62% 0%, rgba(255, 199, 116, 0.17), transparent 70%);
+    filter: blur(10px);
+  }
+  .about-hero__grain {
+    position: absolute;
+    inset: 0;
+    background-image: url("/textures/noise.png");
+    background-size: 210px;
+    opacity: 0.4;
+    mix-blend-mode: overlay;
+  }
+  .about-hero__inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2.5rem, 8vw, 8rem);
+    align-items: center;
+  }
+  .about-title-wrap {
+    position: relative;
+  }
+  .about-title-wrap .eyebrow {
+    margin: 0 0 1.5rem;
+    color: var(--c-brass);
+  }
+  .about-title-wrap h1 {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(3.2rem, 7vw, 6.4rem);
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: 0.1em;
+    color: #f0e1c5;
+  }
+  .about-title-wrap h1 span {
+    padding-left: 1.3em;
+    color: #d8c19a;
+  }
+  .about-seal {
+    position: absolute;
+    right: 8%;
+    bottom: 0.4rem;
+    display: grid;
+    place-items: center;
+    width: 3.2rem;
+    height: 3.2rem;
+    background: #9d3c31;
+    color: #f1e1c3;
+    font-family: var(--font-serif);
+    font-size: 1.45rem;
+    transform: rotate(3deg);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  }
+  .about-intro {
+    border-left: 1px solid rgba(213, 180, 124, 0.2);
+    padding-left: clamp(1.4rem, 3vw, 2.5rem);
+  }
+  .about-intro p {
+    max-width: 30rem;
+    margin: 0 0 1.1rem;
+    font-family: var(--font-serif);
+    font-size: 0.86rem;
+    line-height: 2.1;
+    color: rgba(232, 217, 190, 0.7);
+  }
+  .about-intro .about-lead {
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    color: #f0e1c5;
+  }
+  .about-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 1.8rem;
+  }
+  .about-actions .btn--ghost {
+    color: #e8d7b7;
+    border-color: rgba(213, 180, 124, 0.3);
+    background: rgba(18, 11, 7, 0.25);
+  }
+
+  .about-section {
+    padding-top: clamp(3.5rem, 7vw, 6rem);
+  }
+  .section-head {
+    display: block;
+    padding-bottom: 1.4rem;
+    border-bottom: 1px solid var(--c-line);
+    margin-bottom: 2rem;
+  }
+  .section-head--wide {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .section-head .eyebrow {
+    margin: 0 0 0.6rem;
+  }
+  .section-head h2 {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+  }
+  .section-head__note {
+    max-width: 26rem;
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 0.76rem;
+    line-height: 1.95;
+    color: var(--c-muted);
+  }
+
+  .shelf-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--c-line);
+    border: 1px solid var(--c-line);
+  }
+  .shelf-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 15rem;
+    padding: 1.7rem;
+    background: color-mix(in srgb, var(--c-panel) 66%, transparent);
+    transition: background-color 240ms ease;
+  }
+  .shelf-card:hover {
+    background: color-mix(in srgb, var(--c-brass) 6%, var(--c-panel));
+  }
+  .shelf-card__num {
+    font-family: var(--font-serif);
+    font-size: 0.8rem;
+    color: var(--c-brass);
+  }
+  .shelf-card__label {
+    margin-top: 0.4rem;
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    letter-spacing: 0.1em;
+  }
+  .shelf-card__desc {
+    margin-top: 0.8rem;
+    font-family: var(--font-serif);
+    font-size: 0.76rem;
+    line-height: 1.95;
+    color: var(--c-muted);
+  }
+  .shelf-card__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--c-line);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    color: var(--c-faint);
+  }
+  .shelf-card__arrow {
+    transition: transform 220ms ease;
+  }
+  .shelf-card:hover .shelf-card__arrow {
+    transform: translateX(3px);
+    color: var(--c-brass);
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+  }
+  .step-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 1.6rem;
+    border: 1px solid var(--c-line);
+    background: color-mix(in srgb, var(--c-panel) 58%, transparent);
+  }
+  .step-card--accent {
+    border-color: color-mix(in srgb, var(--c-brass) 38%, transparent);
+    background:
+      linear-gradient(160deg, color-mix(in srgb, var(--c-brass) 8%, transparent), transparent 50%),
+      color-mix(in srgb, var(--c-panel) 58%, transparent);
+  }
+  .step-num {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--c-brass);
+    opacity: 0.8;
+  }
+  .step-card h3 {
+    margin: 0.8rem 0 0.6rem;
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+  .step-card p {
+    margin: 0 0 0.8rem;
+    font-family: var(--font-serif);
+    font-size: 0.72rem;
+    line-height: 1.95;
+    color: var(--c-muted);
+  }
+  .step-card pre,
+  .guide-block pre {
+    margin: 0.6rem 0 1rem;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    border: 1px solid var(--c-line);
+    background: color-mix(in srgb, #0c0805 86%, transparent);
+    color: #d9c6a4;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    line-height: 1.8;
+    tab-size: 2;
+    white-space: pre;
+  }
+  .step-hint {
+    margin-top: auto !important;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--c-line);
+    font-size: 0.62rem !important;
+    color: var(--c-faint) !important;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    color: color-mix(in srgb, var(--c-brass) 76%, var(--c-ink));
+    background: color-mix(in srgb, var(--c-brass) 8%, transparent);
+    padding: 0.08em 0.3em;
+    border-radius: 1px;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+
+  .guide-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin-top: 1.2rem;
+  }
+  .guide-block {
+    padding: 1.6rem;
+    border: 1px solid var(--c-line);
+    background: color-mix(in srgb, var(--c-panel) 46%, transparent);
+  }
+  .guide-block h3 {
+    margin: 0 0 0.8rem;
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+  .guide-block p {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 0.7rem;
+    line-height: 1.95;
+    color: var(--c-faint);
+  }
+
+  .format-table-wrap {
+    margin-top: 1.2rem;
+    border: 1px solid var(--c-line);
+    overflow-x: auto;
+  }
+  .format-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 36rem;
+    font-family: var(--font-serif);
+  }
+  .format-table th,
+  .format-table td {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--c-line);
+    font-size: 0.72rem;
+    line-height: 1.8;
+  }
+  .format-table th {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    font-weight: 400;
+    color: var(--c-brass);
+    background: color-mix(in srgb, var(--c-brass) 4%, transparent);
+  }
+  .format-table td {
+    color: var(--c-muted);
+  }
+  .format-table td:first-child {
+    color: var(--c-ink);
+  }
+  .format-table tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .guide-note {
+    display: flex;
+    gap: 0.9rem;
+    margin-top: 1.2rem;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid var(--c-line);
+    background: color-mix(in srgb, var(--c-brass) 4%, transparent);
+    color: var(--c-brass);
+  }
+  .guide-note p {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 0.7rem;
+    line-height: 1.95;
+    color: var(--c-muted);
+  }
+
+  .colophon-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+  .colophon-card {
+    padding: 1.7rem;
+    border: 1px solid var(--c-line);
+    background: color-mix(in srgb, var(--c-panel) 46%, transparent);
+  }
+  .colophon-card h3 {
+    margin: 0 0 1rem;
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+  }
+  .colophon-card p {
+    margin: 0 0 0.9rem;
+    font-family: var(--font-serif);
+    font-size: 0.72rem;
+    line-height: 2;
+    color: var(--c-muted);
+  }
+  .colophon-card a {
+    color: var(--c-brass);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+  .tech-list {
+    list-style: none;
+    margin: 1.1rem 0 0;
+    padding: 1rem 0 0;
+    border-top: 1px solid var(--c-line);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.04em;
+    color: var(--c-faint);
+  }
+  .tech-list li::before {
+    content: "—";
+    margin-right: 0.5rem;
+    color: var(--c-brass);
+  }
+
+  @media (max-width: 980px) {
+    .about-hero__inner {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+    .about-seal {
+      right: 10%;
+    }
+    .about-intro {
+      border-left: 0;
+      border-top: 1px solid rgba(213, 180, 124, 0.2);
+      padding-left: 0;
+      padding-top: 1.8rem;
+    }
+    .steps,
+    .guide-grid,
+    .colophon-grid {
+      grid-template-columns: 1fr;
+    }
+    .shelf-cards {
+      grid-template-columns: 1fr;
+    }
+    .section-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.8rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .about-hero {
+      padding-top: 2.5rem;
+    }
+    .about-title-wrap h1 {
+      font-size: 3rem;
+    }
+    .about-title-wrap h1 span {
+      padding-left: 0.7em;
+    }
+    .about-seal {
+      width: 2.4rem;
+      height: 2.4rem;
+      font-size: 1.1rem;
+    }
+    .about-intro p {
+      font-size: 0.8rem;
+    }
+    .about-actions .btn {
+      flex: 1;
+    }
+    .step-card,
+    .guide-block,
+    .colophon-card {
+      padding: 1.2rem;
+    }
+    .format-table th,
+    .format-table td {
+      padding: 0.65rem 0.7rem;
+    }
+  }
+</style>

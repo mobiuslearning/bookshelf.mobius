@@ -1,0 +1,284 @@
+---
+import { site, categories } from "../data/site";
+import Icon from "./Icon.astro";
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-glow" aria-hidden="true"></div>
+  <div class="shell footer-grid">
+    <div class="footer-brand">
+      <a class="footer-mark" href="/">
+        <span class="footer-seal" aria-hidden="true">木</span>
+        <span>
+          <strong>{site.name}</strong>
+          <em>{site.nameEn}</em>
+        </span>
+      </a>
+      <p class="footer-tagline">{site.tagline}。<br />把读过的书，放在伸手就能碰到的地方。</p>
+      <div class="footer-socials">
+        <a href={site.social.github} aria-label="GitHub" target="_blank" rel="noreferrer">
+          <Icon name="github" size={17} />
+        </a>
+        <a href={site.social.rss} aria-label="RSS 订阅">
+          <Icon name="rss" size={17} />
+        </a>
+        <a href={`mailto:${site.email}`} aria-label="写一封邮件">
+          <span class="mail-glyph">@</span>
+        </a>
+      </div>
+    </div>
+
+    <nav class="footer-col" aria-label="书架分类">
+      <h2>书架</h2>
+      {categories.map((category) => (
+        <a href={`/#${category.key}`}>{category.label}</a>
+      ))}
+    </nav>
+
+    <nav class="footer-col" aria-label="书房导航">
+      <h2>书房</h2>
+      <a href="/about">关于这间书房</a>
+      <a href="/about#add-book">怎样添一本书</a>
+      <a href="/rss.xml" target="_blank" rel="noreferrer">订阅更新</a>
+      <a href="/#shelf">回到书架</a>
+    </nav>
+
+    <div class="footer-col footer-col--note">
+      <h2>版本与出处</h2>
+      <p>
+        《高性价比人生指南》全文依
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>
+        许可收录，作者 eternity4719。
+      </p>
+      <p>经典名著为公版作品，本站收录导读与短书摘；「我的作品」中的文字为示例内容。</p>
+    </div>
+  </div>
+
+  <div class="shell footer-bottom">
+    <span>© {site.startYear}–{year} {site.name} · 木间主人</span>
+    <span class="footer-built">
+      以 <a href="https://astro.build" target="_blank" rel="noreferrer">Astro</a> 与
+      <a href="https://tailwindcss.com" target="_blank" rel="noreferrer">Tailwind CSS</a> 搭建
+    </span>
+    <button class="back-top" type="button" data-back-top aria-label="回到顶部">
+      <Icon name="arrow-up" size={15} />
+      <span>回到顶部</span>
+    </button>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    margin-top: 7rem;
+    padding: 5rem 0 2rem;
+    border-top: 1px solid var(--c-line);
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--c-paper) 60%, transparent), var(--c-paper)),
+      url("/textures/wood-back.jpg");
+    background-size: auto, cover;
+    background-position: center, center bottom;
+    background-blend-mode: normal, luminosity;
+  }
+  .footer-glow {
+    position: absolute;
+    inset: -20% 10% auto;
+    height: 26rem;
+    background: radial-gradient(closest-side, var(--c-glow), transparent 72%);
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  .footer-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.55fr 0.7fr 0.8fr 1.15fr;
+    gap: 3rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .footer-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .footer-seal {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid color-mix(in srgb, var(--c-brass) 58%, transparent);
+    color: var(--c-brass);
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    transform: rotate(-2deg);
+  }
+  .footer-mark strong {
+    display: block;
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    letter-spacing: 0.16em;
+    font-weight: 600;
+  }
+  .footer-mark em {
+    display: block;
+    margin-top: 0.14rem;
+    font-family: var(--font-display);
+    font-size: 0.58rem;
+    font-style: normal;
+    letter-spacing: 0.24em;
+    color: var(--c-brass);
+    opacity: 0.8;
+  }
+  .footer-tagline {
+    margin: 1.5rem 0 1.6rem;
+    max-width: 21rem;
+    font-family: var(--font-serif);
+    font-size: 0.84rem;
+    line-height: 1.95;
+    color: var(--c-muted);
+  }
+  .footer-socials {
+    display: flex;
+    gap: 0.55rem;
+  }
+  .footer-socials a {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 1px solid var(--c-line);
+    border-radius: 50%;
+    color: var(--c-muted);
+    transition:
+      color 200ms ease,
+      border-color 200ms ease,
+      transform 200ms ease;
+  }
+  .footer-socials a:hover {
+    color: var(--c-brass);
+    border-color: color-mix(in srgb, var(--c-brass) 55%, transparent);
+    transform: translateY(-2px);
+  }
+  .mail-glyph {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  .footer-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.72rem;
+    padding-top: 0.35rem;
+  }
+  .footer-col h2 {
+    margin: 0 0 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 400;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--c-brass);
+  }
+  .footer-col a {
+    width: fit-content;
+    font-size: 0.8rem;
+    color: var(--c-muted);
+    transition: color 180ms ease;
+  }
+  .footer-col a:hover {
+    color: var(--c-brass);
+  }
+  .footer-col p {
+    margin: 0;
+    font-size: 0.73rem;
+    line-height: 1.9;
+    color: var(--c-faint);
+  }
+  .footer-col--note p a {
+    display: inline;
+    color: var(--c-muted);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+
+  .footer-bottom {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.2rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--c-line);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    color: var(--c-faint);
+  }
+  .footer-built {
+    margin-left: auto;
+  }
+  .footer-built a {
+    color: var(--c-muted);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .back-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    color: var(--c-muted);
+    transition: color 200ms ease;
+  }
+  .back-top:hover {
+    color: var(--c-brass);
+  }
+
+  @media (max-width: 1000px) {
+    .footer-grid {
+      grid-template-columns: 1.4fr 0.7fr 0.9fr;
+    }
+    .footer-col--note {
+      grid-column: 1 / -1;
+      max-width: 40rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--c-line);
+    }
+  }
+
+  @media (max-width: 700px) {
+    .site-footer {
+      margin-top: 4.5rem;
+      padding-top: 3.5rem;
+    }
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 2.2rem;
+    }
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+    .footer-col--note {
+      grid-column: 1 / -1;
+    }
+    .footer-bottom {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.7rem;
+    }
+    .footer-built {
+      margin-left: 0;
+    }
+    .back-top {
+      margin-top: 0.3rem;
+    }
+  }
+</style>

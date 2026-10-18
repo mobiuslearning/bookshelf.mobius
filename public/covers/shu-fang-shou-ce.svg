@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#f4eddd"/>
+      <stop offset="0.6" stop-color="#efe6d2"/>
+      <stop offset="1" stop-color="#e3d6bd"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.1"/></feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="600" height="900" fill="url(#paper)"/>
+  <rect width="600" height="900" fill="#fff" opacity="0.14"/>
+  <rect width="600" height="900" filter="url(#grain)" opacity="0.65"/>
+  <rect x="34" y="34" width="532" height="832" fill="none" stroke="#6b6a3c" stroke-width="1" opacity="0.35"/>
+  <text x="300" y="88" text-anchor="middle" font-family="'Cormorant Garamond',Georgia,serif" font-size="16" letter-spacing="6" fill="#6b6a3c" opacity="0.85">MY SHELF · 手稿</text>
+  <path d="M92 112h160" stroke="#6b6a3c" stroke-width="1" opacity="0.45"/>
+  <path d="M92 112v520" stroke="#6b6a3c" stroke-width="0.8" opacity="0.25"/>
+  
+      <g fill="none" stroke="#6b6a3c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.32">
+        <path d="M282 76v46M236 122h92M244 142c-20 46-20 96 0 142h76c20-46 20-96 0-142zM250 284h84M266 300l-8 38M298 300l8 38"/>
+        <path d="M262 166h40M262 194h40M262 222h40" opacity="0.55"/>
+        <path d="M282 352v26"/>
+      </g>
+  <text x="330" y="260" text-anchor="middle" font-family="'Songti SC','Noto Serif SC','Source Han Serif SC',serif" font-size="76" font-weight="500" fill="#2a2823" opacity="1" letter-spacing="0"><tspan x="330" dy="0">添</tspan><tspan x="330" dy="87">书</tspan><tspan x="330" dy="87">记</tspan></text>
+  <text x="402" y="326" text-anchor="middle" font-family="'Songti SC','Noto Serif SC','Source Han Serif SC',serif" font-size="15" font-weight="400" fill="#5b5a36" opacity="0.85" letter-spacing="0"></text>
+  <g transform="translate(476 742)">
+    <rect x="-42" y="-42" width="84" height="84" rx="2" fill="none" stroke="#6b6a3c" stroke-width="1.4" opacity="0.8"/>
+    <text x="0" y="8" text-anchor="middle" font-family="'Songti SC','Noto Serif SC',serif" font-size="24" fill="#6b6a3c">木间</text>
+  </g>
+  <text x="96" y="782" font-family="'Songti SC','Noto Serif SC',serif" font-size="15" fill="#2a2823" opacity="0.7">木间主人 著</text>
+  <text x="96" y="816" font-family="'Cormorant Garamond',Georgia,serif" font-size="13" letter-spacing="4" fill="#6b6a3c" opacity="0.7">木間書齋 · 2026</text>
+  <rect width="600" height="900" fill="none" stroke="#000" stroke-width="14" opacity="0.07"/>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#f4eddd"/>
+      <stop offset="0.6" stop-color="#efe6d2"/>
+      <stop offset="1" stop-color="#e3d6bd"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.1"/></feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="600" height="900" fill="url(#paper)"/>
+  <rect width="600" height="900" fill="#fff" opacity="0.14"/>
+  <rect width="600" height="900" filter="url(#grain)" opacity="0.65"/>
+  <rect x="34" y="34" width="532" height="832" fill="none" stroke="#7a5c3e" stroke-width="1" opacity="0.35"/>
+  <text x="300" y="88" text-anchor="middle" font-family="'Cormorant Garamond',Georgia,serif" font-size="16" letter-spacing="6" fill="#7a5c3e" opacity="0.85">MY SHELF · 手稿</text>
+  <path d="M92 112h160" stroke="#7a5c3e" stroke-width="1" opacity="0.45"/>
+  <path d="M92 112v520" stroke="#7a5c3e" stroke-width="0.8" opacity="0.25"/>
+  
+      <g fill="none" stroke="#7a5c3e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.32">
+        <path d="M120 420c40-90 92-166 170-228"/>
+        <path d="M174 324c-42 2-70-20-72-56 40-6 66 14 72 56zM216 254c-30 4-56-12-62-44 34-6 56 12 62 44zM154 382c36-4 62-28 64-62-36 0-58 22-64 62z"/>
+        <path d="M274 146c36 10 56 38 52 74-34-8-52-36-52-74z"/>
+      </g>
+  <text x="330" y="260" text-anchor="middle" font-family="'Songti SC','Noto Serif SC','Source Han Serif SC',serif" font-size="76" font-weight="500" fill="#2a2823" opacity="1" letter-spacing="0"><tspan x="330" dy="0">慢</tspan><tspan x="330" dy="87">读</tspan><tspan x="330" dy="87">记</tspan></text>
+  <text x="402" y="326" text-anchor="middle" font-family="'Songti SC','Noto Serif SC','Source Han Serif SC',serif" font-size="15" font-weight="400" fill="#664f37" opacity="0.85" letter-spacing="0"><tspan x="402" dy="0">一</tspan><tspan x="402" dy="19">个</tspan><tspan x="402" dy="19">普</tspan><tspan x="402" dy="19">通</tspan><tspan x="402" dy="19">读</tspan><tspan x="402" dy="19">者</tspan><tspan x="402" dy="19">的</tspan><tspan x="402" dy="19">读</tspan><tspan x="402" dy="19">书</tspan><tspan x="402" dy="19">笔</tspan><tspan x="402" dy="19">记</tspan></text>
+  <g transform="translate(476 742)">
+    <rect x="-42" y="-42" width="84" height="84" rx="2" fill="none" stroke="#7a5c3e" stroke-width="1.4" opacity="0.8"/>
+    <text x="0" y="8" text-anchor="middle" font-family="'Songti SC','Noto Serif SC',serif" font-size="24" fill="#7a5c3e">山窗</text>
+  </g>
+  <text x="96" y="782" font-family="'Songti SC','Noto Serif SC',serif" font-size="15" fill="#2a2823" opacity="0.7">山窗 著</text>
+  <text x="96" y="816" font-family="'Cormorant Garamond',Georgia,serif" font-size="13" letter-spacing="4" fill="#7a5c3e" opacity="0.7">木間書齋 · 2026</text>
+  <rect width="600" height="900" fill="none" stroke="#000" stroke-width="14" opacity="0.07"/>
+</svg>

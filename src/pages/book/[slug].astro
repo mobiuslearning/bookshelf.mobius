@@ -1,0 +1,1012 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Book3D from "../../components/Book3D.astro";
+import Icon from "../../components/Icon.astro";
+import {
+  getBooks,
+  getBookChapters,
+  readingMinutes,
+  readHref,
+  formatLabel,
+  statusLabel,
+  formatDuration,
+  coverFor,
+  type Book,
+} from "../../lib/library";
+import { categoryMeta } from "../../lib/library";
+
+export async function getStaticPaths() {
+  const books = await getBooks();
+  return books.map((book) => ({
+    params: { slug: book.data.slug },
+    props: { book },
+  }));
+}
+
+interface Props {
+  book: Book;
+}
+
+const { book } = Astro.props;
+const chapters = await getBookChapters(book);
+const meta = categoryMeta(book.data.category);
+const totalMinutes = chapters.reduce(
+  (sum, chapter) => sum + readingMinutes(chapter.body),
+  0,
+);
+const related = (await getBooks())
+  .filter(
+    (item) =>
+      item.data.category === book.data.category &&
+      item.data.slug !== book.data.slug,
+  )
+  .slice(0, 3);
+
+const firstChapter = chapters[0];
+const isPdf = book.data.format === "pdf";
+const primaryHref = isPdf
+  ? `/read/${book.data.slug}/pdf`
+  : firstChapter
+    ? readHref(book, firstChapter)
+    : (book.data.file ?? book.data.source?.url ?? "#");
+const primaryLabel = isPdf
+  ? "在线翻阅 PDF"
+  : firstChapter
+    ? book.data.access === "excerpt"
+      ? "读导读与书摘"
+      : "从第一篇开始"
+    : book.data.format === "epub"
+      ? "下载 EPUB"
+      : "前往阅读";
+
+const readingLabel =
+  book.data.format === "pdf"
+    ? "按页翻阅"
+    : totalMinutes
+      ? formatDuration(totalMinutes)
+      : (book.data.readingTime ?? "待补充");
+
+const breadcrumb = [
+  { label: "书架", href: "/#shelf" },
+  { label: meta.label, href: `/#${book.data.category}` },
+  { label: book.data.title, href: `/book/${book.data.slug}` },
+];
+---
+
+<BaseLayout
+  title={book.data.title}
+  description={`${book.data.title} · ${book.data.author}。${book.data.description}`}
+  bodyClass="book-page"
+>
+  <main id="main" class="book-main">
+    <div class="book-atmosphere" aria-hidden="true">
+      <div class="book-atmosphere__image" style={`background-image:url(${coverFor(book)})`}></div>
+      <div class="book-atmosphere__wash"></div>
+      <div class="book-atmosphere__grain"></div>
+    </div>
+
+    <div class="shell">
+      <nav class="breadcrumb" aria-label="面包屑">
+        {breadcrumb.map((crumb, index) => (
+          <>
+            {index > 0 && <span class="breadcrumb__sep" aria-hidden="true">/</span>}
+            {index === breadcrumb.length - 1 ? (
+              <span aria-current="page">{crumb.label}</span>
+            ) : (
+              <a href={crumb.href}>{crumb.label}</a>
+            )}
+          </>
+        ))}
+      </nav>
+
+      <section class="book-hero">
+        <div class="book-hero__visual">
+          <div class="book-halo" aria-hidden="true"></div>
+          <div class="book-stand">
+            <Book3D
+              book={book}
+              variant="detail"
+              width="clamp(220px, 25vw, 286px)"
+              height="clamp(330px, 37.5vw, 430px)"
+              depth={47}
+              tilt={21}
+              lean={-1.2}
+              showTooltip={false}
+              eager={true}
+            />
+          </div>
+          <div class="book-stand__base" aria-hidden="true">
+            <span class="book-stand__plate">{meta.labelEn} · COLLECTION</span>
+          </div>
+        </div>
+
+        <div class="book-hero__copy">
+          <p class="eyebrow book-kicker">
+            <span>{meta.numeral}</span>
+            {meta.label} / {meta.labelEn}
+          </p>
+          <h1>{book.data.title}</h1>
+          {book.data.subtitle && <p class="book-subtitle">{book.data.subtitle}</p>}
+
+          <div class="book-byline">
+            <span class="book-author">{book.data.author}</span>
+            {book.data.year && <span class="book-dot" aria-hidden="true">·</span>}
+            {book.data.year && <span>{book.data.year}</span>}
+            <span class="book-status">{statusLabel(book.data.status)}</span>
+          </div>
+
+          <p class="book-description">{book.data.description}</p>
+
+          <ul class="book-tags" aria-label="标签">
+            {book.data.tags.map((tag) => <li>{tag}</li>)}
+          </ul>
+
+          <dl class="book-facts">
+            <div>
+              <dt>篇目</dt>
+              <dd>{chapters.length ? `${chapters.length} 篇` : "—"}</dd>
+            </div>
+            <div>
+              <dt>阅读</dt>
+              <dd>{readingLabel}</dd>
+            </div>
+            <div>
+              <dt>形式</dt>
+              <dd>{formatLabel(book.data.format)}</dd>
+            </div>
+            <div>
+              <dt>收录</dt>
+              <dd>{book.data.access === "excerpt" ? "导读 · 书摘" : book.data.access === "full" ? "全文" : "外部"}</dd>
+            </div>
+          </dl>
+
+          <div class="book-actions">
+            <a class="btn btn--brass" href={primaryHref}>
+              {primaryLabel}
+              <Icon name="arrow-right" size={15} />
+            </a>
+            {book.data.file && (
+              <a class="btn btn--ghost" href={book.data.file} download>
+                <Icon name="download" size={15} />
+                {book.data.fileLabel ?? "下载藏本"}
+              </a>
+            )}
+            {book.data.source && (
+              <a class="book-source-link" href={book.data.source.url} target="_blank" rel="noreferrer">
+                {book.data.source.label}
+                <Icon name="external" size={13} />
+              </a>
+            )}
+          </div>
+
+          {book.data.note && (
+            <p class="book-note">
+              <span aria-hidden="true">※</span>
+              {book.data.note}
+            </p>
+          )}
+        </div>
+      </section>
+
+      <section class="book-body">
+        <div class="contents-panel">
+          <header class="contents-head">
+            <div>
+              <p class="eyebrow">
+              {chapters.length > 0 ? "TABLE OF CONTENTS" : isPdf ? "PDF EDITION" : "SHELF CARD"}
+            </p>
+              <h2>
+                {chapters.length > 0
+                  ? book.data.access === "excerpt"
+                    ? "导读与书摘"
+                    : "目录"
+                  : isPdf
+                    ? "藏本说明"
+                    : "藏本"}
+              </h2>
+            </div>
+            <span class="contents-count">
+              {chapters.length > 0
+                ? `${String(chapters.length).padStart(2, "0")} 篇`
+                : isPdf
+                  ? "PDF"
+                  : "—"}
+            </span>
+          </header>
+
+          {chapters.length > 0 ? (
+            <ol class="contents-list">
+              {chapters.map((chapter, index) => (
+                <li>
+                  <a href={readHref(book, chapter)}>
+                    <span class="contents-number">{String(index + 1).padStart(2, "0")}</span>
+                    <span class="contents-text">
+                      <span class="contents-title">{chapter.data.title}</span>
+                      {chapter.data.summary && (
+                        <span class="contents-summary">{chapter.data.summary}</span>
+                      )}
+                    </span>
+                    <span class="contents-time">{readingMinutes(chapter.body)} 分钟</span>
+                    <span class="contents-arrow"><Icon name="arrow-right" size={14} /></span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          ) : isPdf ? (
+            <div class="pdf-preview">
+              <span class="pdf-preview__mark" aria-hidden="true">PDF</span>
+              <h3>这是一本 PDF 藏本</h3>
+              <p>在站内直接翻阅，也可以下载到电脑或阅读器里。PDF 阅读器由 PDF.js 在本地渲染，文件不会上传。</p>
+              <div class="pdf-preview__actions">
+                <a class="btn btn--brass btn--small" href={`/read/${book.data.slug}/pdf`}>
+                  <Icon name="book" size={14} /> 在线翻阅
+                </a>
+                {book.data.file && (
+                  <a class="btn btn--ghost btn--small" href={book.data.file} download>
+                    <Icon name="download" size={14} /> 下载 PDF
+                  </a>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div class="contents-empty">
+              <p>
+                {book.data.format === "epub"
+                  ? "这本书以 EPUB 藏本的形式放在书架上，下载后可以在阅读器里打开。"
+                  : book.data.format === "link"
+                    ? "这是一枚指向原站的书签，本站不保存全文。"
+                    : "这本书暂时以藏本形式放在书架上。"}
+              </p>
+              <p>如果你有它的全文，可以按「添书」指南放进书架。</p>
+              <a class="btn btn--ghost btn--small" href="/about#add-book">看看怎样添书</a>
+            </div>
+          )}
+        </div>
+
+        <aside class="book-aside">
+          <div class="aside-card">
+            <p class="eyebrow">COLOPHON</p>
+            <h2>版本与出处</h2>
+            <dl>
+              <div>
+                <dt>作者</dt>
+                <dd>{book.data.author}</dd>
+              </div>
+              <div>
+                <dt>分类</dt>
+                <dd>{meta.label}</dd>
+              </div>
+              {book.data.license && (
+                <div>
+                  <dt>许可</dt>
+                  <dd>
+                    <a href={book.data.license.url} target="_blank" rel="noreferrer">
+                      {book.data.license.name}
+                      <Icon name="external" size={11} />
+                    </a>
+                  </dd>
+                </div>
+              )}
+              {book.data.source && (
+                <div>
+                  <dt>原项目</dt>
+                  <dd>
+                    <a href={book.data.source.url} target="_blank" rel="noreferrer">
+                      {book.data.source.label}
+                      <Icon name="external" size={11} />
+                    </a>
+                  </dd>
+                </div>
+              )}
+            </dl>
+            <p class="aside-note">
+              书架上的每一本书都保留它的来处。经典名著为公版作品；受许可保护的作品按原许可标注。
+            </p>
+          </div>
+
+          <div class="aside-quote">
+            <Icon name="quote" size={22} />
+            <p>把书放在伸手就能碰到的地方，<br />它才有机会被翻开。</p>
+            <span>—— 木间书斋</span>
+          </div>
+        </aside>
+      </section>
+
+      {related.length > 0 && (
+        <section class="related">
+          <header class="related-head">
+            <p class="eyebrow">SAME SHELF</p>
+            <h2>同一层书架</h2>
+            <a href={`/#${book.data.category}`}>回到{meta.label} <Icon name="arrow-right" size={13} /></a>
+          </header>
+          <div class="related-books">
+            {related.map((item, index) => (
+              <a class="related-book" href={`/book/${item.data.slug}`}>
+                <span class="related-book__cover">
+                  <img src={coverFor(item)} alt={`${item.data.title} 封面`} loading="lazy" />
+                </span>
+                <span class="related-book__copy">
+                  <span class="related-book__title">{item.data.title}</span>
+                  <span class="related-book__author">{item.data.author}</span>
+                </span>
+                <span class="related-book__index">{String(index + 1).padStart(2, "0")}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .book-main {
+    position: relative;
+    padding-top: calc(var(--header-h) + 1.5rem);
+    padding-bottom: 2rem;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .book-atmosphere {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+  }
+  .book-atmosphere__image {
+    position: absolute;
+    inset: -20%;
+    background-position: center;
+    background-size: cover;
+    filter: blur(70px) saturate(0.75) brightness(0.35);
+    transform: scale(1.2);
+    opacity: 0.75;
+  }
+  .book-atmosphere__wash {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(70rem 45rem at 30% 4%, rgba(255, 195, 116, 0.1), transparent 62%),
+      linear-gradient(180deg, rgba(14, 9, 6, 0.78), var(--c-paper) 55rem);
+  }
+  .book-atmosphere__grain {
+    position: absolute;
+    inset: 0;
+    background-image: url("/textures/noise.png");
+    background-size: 220px;
+    opacity: 0.4;
+    mix-blend-mode: overlay;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.1em;
+    color: var(--c-faint);
+    padding: 0.4rem 0 0;
+  }
+  .breadcrumb a {
+    transition: color 180ms ease;
+  }
+  .breadcrumb a:hover {
+    color: var(--c-brass);
+  }
+  .breadcrumb__sep {
+    opacity: 0.45;
+  }
+  .breadcrumb span[aria-current] {
+    color: var(--c-muted);
+  }
+
+  .book-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: center;
+    padding: clamp(2.5rem, 6vh, 5rem) 0 5rem;
+  }
+
+  .book-hero__visual {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 30rem;
+  }
+  .book-halo {
+    position: absolute;
+    width: 30rem;
+    height: 30rem;
+    border-radius: 50%;
+    background:
+      radial-gradient(closest-side, rgba(255, 189, 104, 0.16), transparent 70%);
+    border: 1px solid rgba(213, 180, 124, 0.1);
+  }
+  .book-halo::after {
+    content: "";
+    position: absolute;
+    inset: 3.4rem;
+    border-radius: 50%;
+    border: 1px dashed rgba(213, 180, 124, 0.13);
+  }
+  .book-stand {
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 40px 34px rgba(0, 0, 0, 0.55));
+  }
+  .book-stand__base {
+    position: relative;
+    z-index: 2;
+    width: clamp(15rem, 24vw, 20rem);
+    height: 2.1rem;
+    margin-top: 1.5rem;
+    background:
+      linear-gradient(180deg, rgba(255, 216, 154, 0.2), transparent 30%),
+      url("/textures/wood-shelf.jpg") center 46% / cover;
+    border-radius: 2px;
+    box-shadow:
+      0 10px 25px -8px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 228, 181, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .book-stand__plate {
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+    letter-spacing: 0.16em;
+    color: rgba(29, 18, 9, 0.8);
+    padding: 0.14rem 0.55rem;
+    background: linear-gradient(180deg, #ddc18b, #a9854e);
+    border-radius: 1px;
+    box-shadow: inset 0 1px 0 rgba(255, 246, 220, 0.65);
+  }
+
+  .book-kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 0 1.1rem;
+  }
+  .book-kicker span {
+    font-family: var(--font-serif);
+    font-size: 0.85rem;
+    letter-spacing: 0;
+  }
+  .book-hero__copy h1 {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(2.3rem, 4.4vw, 3.6rem);
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+    color: var(--c-ink);
+  }
+  .book-subtitle {
+    margin: 0.9rem 0 0;
+    font-family: var(--font-serif);
+    font-size: 0.92rem;
+    line-height: 1.9;
+    letter-spacing: 0.02em;
+    color: var(--c-muted);
+  }
+  .book-byline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.1rem;
+    font-family: var(--font-serif);
+    font-size: 0.76rem;
+    color: var(--c-faint);
+  }
+  .book-author {
+    color: var(--c-brass);
+    letter-spacing: 0.1em;
+  }
+  .book-dot {
+    opacity: 0.5;
+  }
+  .book-status {
+    margin-left: 0.35rem;
+    padding: 0.1rem 0.45rem;
+    border: 1px solid var(--c-line);
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.1em;
+    color: var(--c-muted);
+    border-radius: 1px;
+  }
+  .book-description {
+    max-width: 38rem;
+    margin: 1.6rem 0 0;
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    line-height: 2.1;
+    color: var(--c-muted);
+  }
+
+  .book-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    list-style: none;
+    margin: 1.4rem 0 0;
+    padding: 0;
+  }
+  .book-tags li {
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--c-line);
+    font-family: var(--font-serif);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    color: var(--c-faint);
+    border-radius: 1px;
+  }
+
+  .book-facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, auto));
+    gap: 1.6rem;
+    justify-content: start;
+    margin: 1.9rem 0 0;
+    padding: 1.1rem 0;
+    border-top: 1px solid var(--c-line);
+    border-bottom: 1px solid var(--c-line);
+  }
+  .book-facts div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .book-facts dt {
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.14em;
+    color: var(--c-faint);
+  }
+  .book-facts dd {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 0.8rem;
+    color: var(--c-ink);
+  }
+
+  .book-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
+    margin-top: 1.7rem;
+  }
+  .book-source-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-serif);
+    font-size: 0.7rem;
+    color: var(--c-faint);
+    border-bottom: 1px solid var(--c-line);
+    padding-bottom: 0.2rem;
+    transition: color 180ms ease;
+  }
+  .book-source-link:hover {
+    color: var(--c-brass);
+  }
+  .book-note {
+    display: flex;
+    gap: 0.55rem;
+    max-width: 38rem;
+    margin: 1.4rem 0 0;
+    font-family: var(--font-serif);
+    font-size: 0.68rem;
+    line-height: 1.9;
+    color: var(--c-faint);
+  }
+  .book-note span {
+    color: var(--c-brass);
+  }
+
+  /* ---------------------------------------------------------------- body */
+  .book-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18rem;
+    gap: 3rem;
+    align-items: start;
+    padding-bottom: 2rem;
+  }
+  .contents-panel {
+    position: relative;
+    padding: clamp(1.4rem, 3vw, 2.4rem);
+    background:
+      linear-gradient(160deg, rgba(255, 255, 255, 0.035), transparent 40%),
+      color-mix(in srgb, var(--c-panel) 72%, transparent);
+    border: 1px solid var(--c-line);
+    box-shadow:
+      0 30px 70px -40px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 238, 204, 0.05);
+    backdrop-filter: blur(5px);
+  }
+  .contents-panel::before {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border: 1px solid color-mix(in srgb, var(--c-brass) 12%, transparent);
+    pointer-events: none;
+  }
+  .contents-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1.1rem;
+    border-bottom: 1px solid var(--c-line);
+    position: relative;
+    z-index: 1;
+  }
+  .contents-head .eyebrow {
+    margin: 0 0 0.45rem;
+  }
+  .contents-head h2 {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+  }
+  .contents-count {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    color: var(--c-faint);
+  }
+  .contents-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.2rem 0 0;
+    columns: 2;
+    column-gap: 2.4rem;
+  }
+  .contents-list li {
+    break-inside: avoid;
+    border-bottom: 1px solid color-mix(in srgb, var(--c-line) 62%, transparent);
+  }
+  .contents-list a {
+    display: grid;
+    grid-template-columns: 1.6rem minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.78rem 0.25rem;
+    transition:
+      padding-left 200ms ease,
+      background-color 200ms ease;
+  }
+  .contents-list a:hover {
+    padding-left: 0.55rem;
+    background: color-mix(in srgb, var(--c-brass) 4%, transparent);
+  }
+  .contents-number {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    color: var(--c-brass);
+    opacity: 0.8;
+  }
+  .contents-text {
+    min-width: 0;
+  }
+  .contents-title {
+    display: block;
+    font-family: var(--font-serif);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--c-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .contents-summary {
+    display: block;
+    margin-top: 0.15rem;
+    font-family: var(--font-serif);
+    font-size: 0.6rem;
+    line-height: 1.6;
+    color: var(--c-faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .contents-time {
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.04em;
+    color: var(--c-faint);
+    white-space: nowrap;
+  }
+  .contents-arrow {
+    color: var(--c-faint);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease;
+  }
+  .contents-list a:hover .contents-arrow {
+    opacity: 1;
+    transform: none;
+    color: var(--c-brass);
+  }
+  .pdf-preview {
+    position: relative;
+    padding: 1.6rem 0.4rem 0.6rem;
+  }
+  .pdf-preview__mark {
+    display: inline-grid;
+    place-items: center;
+    width: 3.1rem;
+    height: 4.1rem;
+    margin-bottom: 1rem;
+    border: 1px solid color-mix(in srgb, var(--c-brass) 38%, transparent);
+    color: var(--c-brass);
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    background: color-mix(in srgb, var(--c-brass) 5%, transparent);
+    box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.7);
+  }
+  .pdf-preview h3 {
+    margin: 0 0 0.6rem;
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+  }
+  .pdf-preview p {
+    max-width: 34rem;
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 0.78rem;
+    line-height: 2;
+    color: var(--c-muted);
+  }
+  .pdf-preview__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+  }
+
+  .contents-empty {
+    padding: 2rem 0.5rem;
+    font-family: var(--font-serif);
+    color: var(--c-muted);
+    font-size: 0.82rem;
+    line-height: 2;
+  }
+  .contents-empty .btn {
+    margin-top: 1rem;
+  }
+
+  .book-aside {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: sticky;
+    top: calc(var(--header-h) + 1.5rem);
+  }
+  .aside-card {
+    padding: 1.5rem;
+    border: 1px solid var(--c-line);
+    background: color-mix(in srgb, var(--c-panel) 55%, transparent);
+    backdrop-filter: blur(4px);
+  }
+  .aside-card .eyebrow {
+    margin: 0 0 0.5rem;
+  }
+  .aside-card h2 {
+    margin: 0 0 1.1rem;
+    font-family: var(--font-serif);
+    font-size: 1.12rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+  }
+  .aside-card dl {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .aside-card dl div {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: 0.6rem;
+    font-family: var(--font-serif);
+    font-size: 0.68rem;
+    line-height: 1.6;
+  }
+  .aside-card dt {
+    color: var(--c-faint);
+  }
+  .aside-card dd {
+    margin: 0;
+    color: var(--c-muted);
+    overflow-wrap: anywhere;
+  }
+  .aside-card dd a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--c-line);
+    transition: color 180ms ease;
+  }
+  .aside-card dd a:hover {
+    color: var(--c-brass);
+  }
+  .aside-note {
+    margin: 1.2rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--c-line);
+    font-family: var(--font-serif);
+    font-size: 0.62rem;
+    line-height: 1.9;
+    color: var(--c-faint);
+  }
+  .aside-quote {
+    padding: 1.4rem 1.5rem;
+    border: 1px solid var(--c-line);
+    background: color-mix(in srgb, var(--c-brass) 3%, transparent);
+  }
+  .aside-quote :global(svg) {
+    color: var(--c-brass);
+    opacity: 0.55;
+  }
+  .aside-quote p {
+    margin: 0.8rem 0 0.5rem;
+    font-family: var(--font-serif);
+    font-size: 0.8rem;
+    line-height: 2;
+    color: var(--c-muted);
+  }
+  .aside-quote span {
+    font-family: var(--font-serif);
+    font-size: 0.6rem;
+    color: var(--c-faint);
+  }
+
+  /* -------------------------------------------------------------- related */
+  .related {
+    padding: 4.5rem 0 2rem;
+  }
+  .related-head {
+    display: flex;
+    align-items: baseline;
+    gap: 1.2rem;
+    margin-bottom: 1.4rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--c-line);
+  }
+  .related-head .eyebrow {
+    margin: 0;
+  }
+  .related-head h2 {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1.35rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+  }
+  .related-head a {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: var(--font-serif);
+    font-size: 0.68rem;
+    color: var(--c-faint);
+    transition: color 180ms ease;
+  }
+  .related-head a:hover {
+    color: var(--c-brass);
+  }
+  .related-books {
+    display: grid;
+    gap: 1rem;
+  }
+  .related-book {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 0.3rem;
+    border-bottom: 1px solid var(--c-line);
+    transition: padding-left 220ms ease;
+  }
+  .related-book:hover {
+    padding-left: 0.7rem;
+  }
+  .related-book__cover {
+    width: 2.6rem;
+    height: 3.75rem;
+    overflow: hidden;
+    box-shadow: 0 5px 12px -6px rgba(0, 0, 0, 0.8);
+  }
+  .related-book__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .related-book__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .related-book__title {
+    font-family: var(--font-serif);
+    font-size: 0.88rem;
+    letter-spacing: 0.04em;
+  }
+  .related-book__author {
+    font-family: var(--font-serif);
+    font-size: 0.62rem;
+    color: var(--c-faint);
+  }
+  .related-book__index {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--c-brass);
+    opacity: 0.5;
+  }
+
+  @media (max-width: 1000px) {
+    .book-hero {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      padding-bottom: 3rem;
+    }
+    .book-hero__visual {
+      min-height: 24rem;
+    }
+    .book-body {
+      grid-template-columns: 1fr;
+    }
+    .book-aside {
+      position: static;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .book-main {
+      padding-top: calc(var(--header-h) + 0.8rem);
+    }
+    .book-hero__visual {
+      min-height: 21rem;
+    }
+    .book-halo {
+      width: 22rem;
+      height: 22rem;
+    }
+    .book-facts {
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem 1.5rem;
+    }
+    .contents-list {
+      columns: 1;
+    }
+    .book-aside {
+      grid-template-columns: 1fr;
+    }
+    .related-head {
+      flex-wrap: wrap;
+    }
+    .related-head a {
+      width: 100%;
+      margin-left: 0;
+    }
+  }
+</style>

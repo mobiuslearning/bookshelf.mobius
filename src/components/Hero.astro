@@ -1,0 +1,724 @@
+---
+import type { Book } from "../lib/library";
+import { site } from "../data/site";
+import Book3D from "./Book3D.astro";
+import Icon from "./Icon.astro";
+
+interface Props {
+  featured?: Book;
+  stats: { books: number; chapters: number; categories: number };
+}
+
+const { featured, stats } = Astro.props;
+
+const dust = Array.from({ length: 18 }, (_, index) => ({
+  left: `${(index * 37 + 11) % 100}%`,
+  top: `${(index * 53 + 17) % 88}%`,
+  size: `${1 + ((index * 7) % 3)}px`,
+  delay: `${-(index * 1.7).toFixed(1)}s`,
+  duration: `${14 + ((index * 5) % 12)}s`,
+  drift: `${((index % 2 ? 1 : -1) * (10 + ((index * 9) % 36)))}px`,
+  opacity: `${0.12 + ((index * 13) % 30) / 100}`,
+}));
+
+const bookTitle = featured?.data.title ?? "一本正在等待的书";
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hero-wall"></div>
+    <div class="hero-wash"></div>
+    <div class="hero-beam"></div>
+    <div class="hero-vignette"></div>
+    <div class="hero-grain"></div>
+    <div class="pendant">
+      <span class="pendant__cord"></span>
+      <span class="pendant__shade"></span>
+      <span class="pendant__bulb"></span>
+      <span class="pendant__light"></span>
+    </div>
+    <div class="dust-field">
+      {dust.map((particle) => (
+        <span
+          class="dust"
+          style={`left:${particle.left};top:${particle.top};width:${particle.size};height:${particle.size};animation-delay:${particle.delay};animation-duration:${particle.duration};--dust-x:${particle.drift};--dust-opacity:${particle.opacity}`}
+        />
+      ))}
+    </div>
+    <span class="side-note">READ SLOWLY · LIVE DEEPLY</span>
+  </div>
+
+  <div class="hero-inner shell">
+    <div class="hero-copy">
+      <p class="eyebrow hero-eyebrow">
+        <span class="hero-eyebrow-line"></span>
+        A PRIVATE LIBRARY · EST. {site.startYear}
+      </p>
+
+      <div class="title-wrap">
+        <h1 id="hero-title" class="hero-title" aria-label={site.name}>
+          <span>木间</span>
+          <span>书斋</span>
+        </h1>
+        <span class="title-seal" aria-hidden="true">
+          <span>藏</span>
+        </span>
+      </div>
+
+      <p class="hero-tagline">{site.tagline}。</p>
+      <p class="hero-desc">
+        木头、纸页和一点昏黄的光。这里放着读过的经典、正在被谈起的书，
+        以及自己写下的字。你可以从任意一本开始，不必按顺序。
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn--brass" href="#shelf">
+          逛逛书架
+          <Icon name="arrow-right" size={16} />
+        </a>
+        <a class="btn btn--ghost" href="/about#add-book">
+          怎样添一本书
+        </a>
+      </div>
+
+      <dl class="hero-stats">
+        <div>
+          <dd>{String(stats.books).padStart(2, "0")}</dd>
+          <dt>册藏书</dt>
+        </div>
+        <div>
+          <dd>{String(stats.chapters).padStart(2, "0")}</dd>
+          <dt>篇可读</dt>
+        </div>
+        <div>
+          <dd>{String(stats.categories).padStart(2, "0")}</dd>
+          <dt>类书架</dt>
+        </div>
+      </dl>
+    </div>
+
+    {featured && (
+      <div class="hero-feature" data-book-parallax>
+        <div class="hero-halo" aria-hidden="true">
+          <span class="halo-ring halo-ring--one"></span>
+          <span class="halo-ring halo-ring--two"></span>
+        </div>
+
+        <div class="hero-book">
+          <Book3D
+            book={featured}
+            variant="hero"
+            width="clamp(220px, 25vw, 300px)"
+            height="clamp(332px, 37.5vw, 452px)"
+            depth={46}
+            tilt={20}
+            lean={-0.8}
+            showTooltip={false}
+            eager={true}
+          />
+        </div>
+
+        <a class="hero-plaque" href={`/book/${featured.data.slug}`}>
+          <span class="hero-plaque__eyebrow">
+            <span class="dot"></span> 本月上架
+          </span>
+          <span class="hero-plaque__title">{bookTitle}</span>
+          <span class="hero-plaque__meta">
+            {featured.data.author} · {featured.data.readingTime ?? "可全文阅读"}
+          </span>
+          <span class="hero-plaque__cta">
+            翻开 <Icon name="arrow-right" size={13} />
+          </span>
+        </a>
+
+        <p class="hero-feature-note">
+          <span>01</span>
+          从一本关于「怎么活得更划算」的书开始。
+        </p>
+      </div>
+    )}
+  </div>
+
+  <a class="scroll-cue" href="#shelf">
+    <span class="scroll-cue__line"></span>
+    <span>SCROLL TO THE SHELVES</span>
+  </a>
+</section>
+
+<script>
+  const parallax = document.querySelector<HTMLElement>("[data-book-parallax]");
+  if (parallax && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    let frame = 0;
+    const onMove = (event: PointerEvent) => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const rect = parallax.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        parallax.style.setProperty("--book-my", `${x * 9}deg`);
+        parallax.style.setProperty("--book-mx", `${-y * 6}deg`);
+      });
+    };
+    const reset = () => {
+      cancelAnimationFrame(frame);
+      parallax.style.setProperty("--book-my", "0deg");
+      parallax.style.setProperty("--book-mx", "0deg");
+    };
+    parallax.addEventListener("pointermove", onMove);
+    parallax.addEventListener("pointerleave", reset);
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    isolation: isolate;
+    padding-top: var(--header-h);
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background: #170f0a;
+  }
+  .hero-wall {
+    position: absolute;
+    inset: -3%;
+    background:
+      url("/textures/wood-wall.jpg") center / cover;
+    filter: brightness(0.58) saturate(0.88) contrast(1.02);
+    transform: scale(1.04);
+    animation: wall-breathe 26s ease-in-out infinite alternate;
+  }
+  @keyframes wall-breathe {
+    from {
+      transform: scale(1.04) translate3d(0, 0, 0);
+    }
+    to {
+      transform: scale(1.075) translate3d(-0.6%, -0.4%, 0);
+    }
+  }
+  .hero-wash {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgba(12, 7, 4, 0.94) 0%, rgba(12, 7, 4, 0.78) 38%, rgba(12, 7, 4, 0.24) 72%, rgba(12, 7, 4, 0.5) 100%),
+      linear-gradient(180deg, rgba(10, 6, 4, 0.8) 0%, transparent 24%, transparent 68%, rgba(10, 6, 4, 0.92) 100%);
+  }
+  .hero-beam {
+    position: absolute;
+    top: -12%;
+    right: -4%;
+    width: 70%;
+    height: 105%;
+    background:
+      conic-gradient(from 214deg at 72% 0%, transparent 0deg, rgba(255, 206, 138, 0.2) 9deg, rgba(255, 200, 128, 0.07) 25deg, transparent 44deg);
+    filter: blur(22px);
+    opacity: 0.85;
+    mix-blend-mode: screen;
+  }
+  .hero-vignette {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(120% 90% at 50% 40%, transparent 38%, rgba(4, 2, 1, 0.56) 100%);
+  }
+  .hero-grain {
+    position: absolute;
+    inset: 0;
+    background-image: url("/textures/noise.png");
+    background-size: 220px;
+    opacity: 0.42;
+    mix-blend-mode: overlay;
+  }
+
+  :global([data-theme="day"]) .hero-wall {
+    filter: brightness(0.88) saturate(0.78) contrast(1.02);
+  }
+  :global([data-theme="day"]) .hero-wash {
+    background:
+      linear-gradient(90deg, rgba(35, 22, 13, 0.9) 0%, rgba(35, 22, 13, 0.62) 40%, rgba(44, 28, 15, 0.12) 74%, rgba(30, 18, 10, 0.32) 100%),
+      linear-gradient(180deg, rgba(28, 17, 9, 0.72) 0%, transparent 24%, transparent 70%, rgba(28, 17, 9, 0.82) 100%);
+  }
+  :global([data-theme="day"]) .hero-beam {
+    opacity: 0.55;
+  }
+  :global([data-theme="day"]) .hero-vignette {
+    opacity: 0.62;
+  }
+
+  .pendant {
+    position: absolute;
+    top: 0;
+    right: 19%;
+    width: 1px;
+    height: 34%;
+    z-index: 1;
+  }
+  .pendant__cord {
+    position: absolute;
+    left: 0;
+    top: -2rem;
+    width: 1px;
+    height: 58%;
+    background: linear-gradient(180deg, #0a0604, #5b4527);
+  }
+  .pendant__shade {
+    position: absolute;
+    left: 50%;
+    top: calc(58% - 0.5rem);
+    width: 5.4rem;
+    height: 2.1rem;
+    transform: translateX(-50%);
+    background:
+      linear-gradient(180deg, #d6b57a, #8a662f 48%, #4c351a);
+    border-radius: 50% 50% 8% 8% / 74% 74% 26% 26%;
+    box-shadow:
+      0 8px 20px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 240, 204, 0.55);
+  }
+  .pendant__bulb {
+    position: absolute;
+    left: 50%;
+    top: calc(58% + 1.45rem);
+    width: 0.55rem;
+    height: 0.8rem;
+    transform: translateX(-50%);
+    border-radius: 40% 40% 50% 50%;
+    background: radial-gradient(circle at 50% 30%, #fffbe8, #ffd176 55%, #d7862a);
+    box-shadow: 0 0 18px 4px rgba(255, 194, 104, 0.6);
+    animation: breathe 5s ease-in-out infinite;
+  }
+  .pendant__light {
+    position: absolute;
+    left: 50%;
+    top: calc(58% + 1.4rem);
+    width: 26rem;
+    height: 30rem;
+    transform: translateX(-50%);
+    background:
+      conic-gradient(from 168deg at 50% 0%, transparent 0deg, rgba(255, 198, 112, 0.13) 13deg, transparent 32deg);
+    filter: blur(6px);
+    pointer-events: none;
+  }
+
+  .dust-field {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .dust {
+    position: absolute;
+    border-radius: 50%;
+    background: #ffe0ad;
+    box-shadow: 0 0 4px 1px rgba(255, 203, 128, 0.55);
+    animation-name: dust-drift;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    opacity: 0;
+  }
+
+  .side-note {
+    position: absolute;
+    right: 1.05rem;
+    top: 50%;
+    transform: translateY(-50%);
+    writing-mode: vertical-rl;
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.34em;
+    color: rgba(220, 188, 134, 0.4);
+  }
+
+  /* --------------------------------------------------------------- content */
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 5rem);
+    padding-top: clamp(2rem, 5vh, 4.5rem);
+    padding-bottom: clamp(6.5rem, 12vh, 9rem);
+  }
+
+  .hero-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: #d5b47c;
+    margin: 0 0 1.4rem;
+  }
+  .hero-eyebrow-line {
+    width: 2.4rem;
+    height: 1px;
+    background: rgba(213, 180, 124, 0.48);
+  }
+
+  .title-wrap {
+    position: relative;
+    width: fit-content;
+    margin-left: -0.12em;
+  }
+  .hero-title {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(4.4rem, 9.4vw, 8.4rem);
+    font-weight: 500;
+    line-height: 0.92;
+    letter-spacing: 0.1em;
+    color: #f1e3c7;
+    text-shadow:
+      0 4px 30px rgba(0, 0, 0, 0.55),
+      0 1px 0 rgba(255, 239, 208, 0.16);
+  }
+  .hero-title span {
+    display: block;
+  }
+  .hero-title span:last-child {
+    color: #d8c19a;
+    padding-left: 0.72em;
+  }
+  .title-seal {
+    position: absolute;
+    right: -3.2rem;
+    bottom: 0.4rem;
+    display: grid;
+    place-items: center;
+    width: 2.95rem;
+    height: 2.95rem;
+    background:
+      linear-gradient(150deg, rgba(255, 255, 255, 0.16), transparent 40%),
+      #9d3c31;
+    color: #f4e5c8;
+    font-family: var(--font-serif);
+    font-size: 1.45rem;
+    line-height: 1;
+    transform: rotate(2.5deg);
+    box-shadow:
+      0 6px 18px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 3px rgba(244, 215, 166, 0.18);
+    opacity: 0.94;
+  }
+
+  .hero-tagline {
+    margin: 1.8rem 0 0;
+    font-family: var(--font-serif);
+    font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+    letter-spacing: 0.18em;
+    color: #d8c19a;
+  }
+  .hero-desc {
+    max-width: 31rem;
+    margin: 1.1rem 0 0;
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    line-height: 2.05;
+    color: rgba(232, 217, 190, 0.68);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 2.1rem;
+  }
+  .hero-actions .btn--ghost {
+    color: #e8d7b7;
+    border-color: rgba(213, 180, 124, 0.3);
+    background: rgba(18, 11, 7, 0.25);
+  }
+  .hero-actions .btn--ghost:hover {
+    border-color: rgba(213, 180, 124, 0.6);
+    background: rgba(213, 180, 124, 0.08);
+  }
+
+  .hero-stats {
+    display: flex;
+    align-items: flex-end;
+    gap: 2.4rem;
+    margin: 3rem 0 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(213, 180, 124, 0.18);
+    max-width: 27rem;
+  }
+  .hero-stats div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .hero-stats dd {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+    font-weight: 500;
+    line-height: 1;
+    color: #e8d4ad;
+    letter-spacing: 0.04em;
+  }
+  .hero-stats dt {
+    font-family: var(--font-serif);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    color: rgba(216, 193, 154, 0.56);
+  }
+
+  /* ---------------------------------------------------------------- feature */
+  .hero-feature {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(30rem, 55vh, 39rem);
+    perspective: 1600px;
+  }
+  .hero-halo {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+  .halo-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(213, 180, 124, 0.16);
+  }
+  .halo-ring--one {
+    width: 24rem;
+    height: 24rem;
+    background: radial-gradient(closest-side, rgba(255, 190, 108, 0.13), transparent 72%);
+    animation: breathe 8s ease-in-out infinite;
+  }
+  .halo-ring--two {
+    width: 32rem;
+    height: 32rem;
+    border-style: dashed;
+    opacity: 0.34;
+    transform: rotate(12deg);
+  }
+  .hero-book {
+    position: relative;
+    z-index: 3;
+    animation: float-slow 9s ease-in-out infinite;
+    filter: drop-shadow(0 34px 30px rgba(0, 0, 0, 0.45));
+  }
+
+  .hero-plaque {
+    position: relative;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: min(20rem, 90%);
+    margin-top: 2.1rem;
+    padding: 0.9rem 1.1rem 0.95rem;
+    background:
+      linear-gradient(140deg, rgba(255, 255, 255, 0.06), transparent 40%),
+      linear-gradient(180deg, #2b1c12, #1b100a);
+    border: 1px solid rgba(213, 180, 124, 0.32);
+    box-shadow:
+      0 16px 34px -18px rgba(0, 0, 0, 0.8),
+      inset 0 1px 0 rgba(255, 229, 181, 0.12);
+    transform: rotate(-1deg);
+    transition:
+      transform 300ms ease,
+      border-color 300ms ease;
+  }
+  .hero-plaque:hover {
+    transform: rotate(0deg) translateY(-2px);
+    border-color: rgba(213, 180, 124, 0.6);
+  }
+  .hero-plaque__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #c8a66d;
+  }
+  .dot {
+    width: 0.3rem;
+    height: 0.3rem;
+    border-radius: 50%;
+    background: #c9614b;
+    box-shadow: 0 0 6px rgba(201, 97, 75, 0.7);
+  }
+  .hero-plaque__title {
+    font-family: var(--font-serif);
+    font-size: 1.02rem;
+    letter-spacing: 0.08em;
+    color: #f0e1c4;
+  }
+  .hero-plaque__meta {
+    font-family: var(--font-serif);
+    font-size: 0.62rem;
+    color: rgba(216, 193, 154, 0.58);
+  }
+  .hero-plaque__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.35rem;
+    font-family: var(--font-serif);
+    font-size: 0.68rem;
+    color: #d6b37c;
+  }
+
+  .hero-feature-note {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 1.5rem 0 0;
+    font-family: var(--font-serif);
+    font-size: 0.66rem;
+    color: rgba(216, 193, 154, 0.48);
+  }
+  .hero-feature-note span {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: rgba(213, 180, 124, 0.7);
+  }
+
+  .scroll-cue {
+    position: absolute;
+    left: 50%;
+    bottom: 1.4rem;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.26em;
+    color: rgba(216, 193, 154, 0.42);
+    z-index: 5;
+    transition: color 200ms ease;
+  }
+  .scroll-cue:hover {
+    color: rgba(216, 193, 154, 0.8);
+  }
+  .scroll-cue__line {
+    width: 1px;
+    height: 2.4rem;
+    background: linear-gradient(180deg, rgba(213, 180, 124, 0.6), transparent);
+    position: relative;
+    overflow: hidden;
+  }
+  .scroll-cue__line::after {
+    content: "";
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #e8d4ad;
+    animation: scroll-line 2.8s ease-in-out infinite;
+  }
+  @keyframes scroll-line {
+    0% {
+      top: -100%;
+    }
+    55%,
+    100% {
+      top: 100%;
+    }
+  }
+
+  @media (max-width: 980px) {
+    .hero {
+      min-height: auto;
+    }
+    .hero-inner {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      padding-top: 4rem;
+      padding-bottom: 7rem;
+    }
+    .hero-feature {
+      min-height: 0;
+      margin-top: 1.5rem;
+    }
+    .halo-ring--one {
+      width: 20rem;
+      height: 20rem;
+    }
+    .halo-ring--two {
+      width: 27rem;
+      height: 27rem;
+    }
+    .pendant {
+      right: 8%;
+      opacity: 0.65;
+    }
+    .side-note {
+      display: none;
+    }
+    .scroll-cue {
+      bottom: 1rem;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .hero-inner {
+      padding-top: 2.8rem;
+      padding-bottom: 5.5rem;
+    }
+    .hero-title {
+      font-size: clamp(3.7rem, 20vw, 5.4rem);
+    }
+    .title-seal {
+      right: -2.4rem;
+      width: 2.3rem;
+      height: 2.3rem;
+      font-size: 1.1rem;
+    }
+    .hero-tagline {
+      margin-top: 1.3rem;
+      letter-spacing: 0.1em;
+    }
+    .hero-desc {
+      font-size: 0.84rem;
+    }
+    .hero-stats {
+      gap: 1.7rem;
+      margin-top: 2.2rem;
+    }
+    .hero-stats dd {
+      font-size: 1.3rem;
+    }
+    .hero-actions .btn {
+      flex: 1;
+      min-width: 9rem;
+    }
+    .hero-feature {
+      margin-top: 1rem;
+    }
+    .hero-plaque {
+      width: min(18rem, 92%);
+      margin-top: 1.7rem;
+    }
+    .hero-feature-note {
+      display: none;
+    }
+    .pendant {
+      display: none;
+    }
+    .scroll-cue span:last-child {
+      display: none;
+    }
+  }
+</style>

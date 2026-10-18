@@ -1,0 +1,786 @@
+---
+import type { Book } from "../lib/library";
+import type { CategoryKey } from "../data/site";
+import { categoryMeta } from "../lib/library";
+import Book3D from "./Book3D.astro";
+import Decor from "./Decor.astro";
+import Icon from "./Icon.astro";
+
+interface Props {
+  category: CategoryKey;
+  books: Book[];
+  chapterStats?: Record<string, { count: number; minutes: number }>;
+}
+
+const { category, books, chapterStats = {} } = Astro.props;
+const meta = categoryMeta(category);
+const isTrending = category === "trending";
+const isOwn = category === "own";
+
+const sizes = [
+  { w: 140, h: 210, d: 30, lean: -1.4, tilt: 17 },
+  { w: 132, h: 198, d: 26, lean: 1.6, tilt: 20 },
+  { w: 146, h: 218, d: 34, lean: -0.8, tilt: 15 },
+  { w: 136, h: 204, d: 28, lean: 2.1, tilt: 19 },
+  { w: 130, h: 194, d: 25, lean: -2.2, tilt: 21 },
+  { w: 143, h: 214, d: 33, lean: 1.1, tilt: 16 },
+  { w: 134, h: 200, d: 27, lean: -1.8, tilt: 19 },
+  { w: 139, h: 208, d: 31, lean: 1.7, tilt: 17 },
+];
+
+const ownSizes = [
+  { w: 158, h: 236, d: 32, lean: -1.6, tilt: 18 },
+  { w: 168, h: 252, d: 37, lean: 1.3, tilt: 16 },
+  { w: 152, h: 228, d: 29, lean: -0.9, tilt: 20 },
+];
+
+const featured = books.find((book) => book.data.featured) ?? books[0];
+const featureStats = featured ? chapterStats[featured.data.slug] : undefined;
+
+const totalChapters = books.reduce(
+  (sum, book) => sum + (chapterStats[book.data.slug]?.count ?? 0),
+  0,
+);
+const totalMinutes = books.reduce(
+  (sum, book) => sum + (chapterStats[book.data.slug]?.minutes ?? 0),
+  0,
+);
+
+function duration(minutes: number) {
+  if (!minutes) return "—";
+  if (minutes < 60) return `${minutes} 分钟`;
+  return `${(minutes / 60).toFixed(minutes > 600 ? 0 : 1)} 小时`;
+}
+
+const featuredMeta = featured
+  ? [
+      `${featureStats?.count ?? 0} 节`,
+      featured.data.readingTime,
+      featured.data.license?.name,
+    ].filter(Boolean)
+  : [];
+---
+
+<section class="shelf-section" id={category} data-category={category} style={`--category-accent:${meta.accent}`}>
+  <header class="shelf-head shell reveal">
+    <span class="ghost-numeral" aria-hidden="true">{meta.numeral}</span>
+    <div class="head-copy">
+      <p class="eyebrow">
+        <span class="head-index">{meta.numeral}</span>
+        <span class="head-rule"></span>
+        {meta.labelEn}
+      </p>
+      <h2 class="head-title">
+        {meta.label}
+        <span class="head-count">{books.length} 册</span>
+      </h2>
+      <p class="head-desc">{meta.description}</p>
+    </div>
+    <div class="head-meta" aria-label="本层书架统计">
+      <span>{String(books.length).padStart(2, "0")} 册</span>
+      <span>{String(totalChapters).padStart(2, "0")} 篇</span>
+      <span>约 {duration(totalMinutes)}</span>
+    </div>
+  </header>
+
+  <div class="shelf-wrap shell reveal" style="--reveal-delay: 90ms">
+    <div class="shelf-cabinet">
+      <div class="shelf-back" aria-hidden="true">
+        <span class="shelf-light"></span>
+        <span class="shelf-warmth"></span>
+        <span class="shelf-vignette"></span>
+      </div>
+
+      {isTrending && featured ? (
+        <div class="trending-row">
+          <span class="trending-spot" aria-hidden="true"></span>
+          <div class="trending-book">
+            <Book3D
+              book={featured}
+              variant="hero"
+              width="clamp(210px, 24vw, 282px)"
+              height="clamp(318px, 36vw, 426px)"
+              depth={44}
+              tilt={19}
+              lean={-0.6}
+              badge="NEW"
+              eager={true}
+            />
+          </div>
+
+          <article class="feature-card">
+            <span class="feature-card__pin" aria-hidden="true"></span>
+            <p class="eyebrow">本月新书 · 2026</p>
+            <h3>{featured.data.title}</h3>
+            {featured.data.subtitle && <p class="feature-subtitle">{featured.data.subtitle}</p>}
+            <p class="feature-desc">{featured.data.description}</p>
+            <blockquote>
+              <span aria-hidden="true">“</span>不用全做：这是一份备选单，不是任务清单。
+            </blockquote>
+            <div class="feature-meta">
+              {featuredMeta.map((item) => <span>{item}</span>)}
+            </div>
+            <div class="feature-actions">
+              <a class="feature-link" href={`/book/${featured.data.slug}`}>翻开这本书 <Icon name="arrow-right" size={15} /></a>
+              <span class="feature-author">—— {featured.data.author}</span>
+            </div>
+          </article>
+
+          <div class="trending-lamp" aria-hidden="true">
+            <Decor variant="lamp" />
+          </div>
+        </div>
+      ) : (
+        <div class="shelf-row" style={`--book-gap:${isOwn ? "1.5rem" : "0.78rem"}`}>
+          {category === "classics" && (
+            <div class="decor-slot decor-slot--plant" aria-hidden="true">
+              <Decor variant="plant" />
+            </div>
+          )}
+          {isOwn && (
+            <div class="decor-slot decor-slot--ink" aria-hidden="true">
+              <Decor variant="ink" />
+            </div>
+          )}
+
+          {books.map((book, index) => {
+            const size = isOwn ? ownSizes[index % ownSizes.length] : sizes[index % sizes.length];
+            return (
+              <Book3D
+                book={book}
+                variant="shelf"
+                width={size.w}
+                height={size.h}
+                depth={size.d}
+                lean={size.lean}
+                tilt={size.tilt}
+                eager={index < 3}
+                class="shelf-book"
+              />
+            );
+          })}
+
+          {isOwn && (
+            <a class="add-slot" href="/about#add-book" aria-label="怎样添一本新书">
+              <span class="add-slot__inner">
+                <span class="add-slot__plus"><Icon name="plus" size={18} /></span>
+                <span class="add-slot__title">留一个位置</span>
+                <span class="add-slot__hint">添一本新书</span>
+              </span>
+            </a>
+          )}
+
+          {!isOwn && (
+            <div class="decor-slot decor-slot--bookend" aria-hidden="true">
+              <Decor variant="bookend" />
+            </div>
+          )}
+          {isOwn && (
+            <div class="decor-slot decor-slot--candle" aria-hidden="true">
+              <Decor variant="candle" />
+            </div>
+          )}
+        </div>
+      )}
+
+      <div class="shelf-plank" aria-hidden="true">
+        <span class="plank-face"></span>
+        <span class="plank-label">{meta.labelEn} · {String(books.length).padStart(2, "0")}</span>
+        <span class="plank-highlight"></span>
+      </div>
+      <div class="shelf-under" aria-hidden="true"></div>
+
+      <span class="shelf-bracket shelf-bracket--left" aria-hidden="true"></span>
+      <span class="shelf-bracket shelf-bracket--right" aria-hidden="true"></span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .shelf-section {
+    position: relative;
+    padding: 4.4rem 0 1.5rem;
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+  .shelf-section + .shelf-section {
+    padding-top: 5.4rem;
+  }
+
+  .shelf-head {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 2rem;
+    padding-bottom: 2rem;
+  }
+  .ghost-numeral {
+    position: absolute;
+    left: -0.4rem;
+    bottom: 0.1rem;
+    font-family: var(--font-serif);
+    font-size: 8.5rem;
+    line-height: 0.78;
+    color: var(--c-brass);
+    opacity: 0.055;
+    pointer-events: none;
+    user-select: none;
+  }
+  .head-copy {
+    position: relative;
+  }
+  .head-copy .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0 0 0.65rem;
+  }
+  .head-index {
+    color: var(--c-brass);
+  }
+  .head-rule {
+    width: 2.1rem;
+    height: 1px;
+    background: color-mix(in srgb, var(--c-brass) 50%, transparent);
+  }
+  .head-title {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(1.8rem, 3.1vw, 2.55rem);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+    color: var(--c-ink);
+  }
+  .head-count {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    color: var(--c-faint);
+  }
+  .head-desc {
+    margin: 0.8rem 0 0;
+    max-width: 35rem;
+    font-family: var(--font-serif);
+    font-size: 0.84rem;
+    line-height: 1.9;
+    color: var(--c-muted);
+  }
+  .head-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 0.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    color: var(--c-faint);
+    white-space: nowrap;
+  }
+  .head-meta span + span::before {
+    content: "/";
+    margin-right: 1rem;
+    color: color-mix(in srgb, var(--c-brass) 35%, transparent);
+  }
+
+  /* ------------------------------------------------------------- cabinet */
+  .shelf-wrap {
+    perspective: 1800px;
+  }
+  .shelf-cabinet {
+    position: relative;
+    isolation: isolate;
+  }
+  .shelf-back {
+    position: absolute;
+    inset: 0 0 2.5rem;
+    z-index: 0;
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 18%, transparent 74%, rgba(0, 0, 0, 0.5)),
+      url("/textures/wood-back.jpg") center / cover;
+    border: 1px solid color-mix(in srgb, #1a0f09 70%, transparent);
+    border-radius: 2px;
+    box-shadow:
+      inset 0 30px 60px -40px rgba(255, 211, 148, 0.35),
+      inset 0 -20px 50px rgba(0, 0, 0, 0.55),
+      inset 20px 0 50px rgba(0, 0, 0, 0.35),
+      inset -20px 0 50px rgba(0, 0, 0, 0.35),
+      0 30px 60px -30px rgba(0, 0, 0, 0.7);
+  }
+  .shelf-light {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(70% 65% at 50% 0%, rgba(255, 206, 135, 0.24), transparent 68%),
+      linear-gradient(180deg, rgba(255, 221, 165, 0.16), transparent 30%);
+  }
+  .shelf-warmth {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(36, 17, 8, 0.42), transparent 18%, transparent 82%, rgba(36, 17, 8, 0.42));
+  }
+  .shelf-vignette {
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+  }
+
+  .shelf-row {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: var(--book-gap, 0.78rem);
+    min-height: 15rem;
+    padding: 3.4rem 3.6rem 0.7rem;
+  }
+  .shelf-row :global(.book-obj) {
+    z-index: 2;
+  }
+
+  .decor-slot {
+    position: absolute;
+    bottom: 0.7rem;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .decor-slot--plant {
+    left: 1.5rem;
+    bottom: 0.7rem;
+    z-index: 1;
+    opacity: 0.95;
+  }
+  .decor-slot--bookend {
+    right: 1.5rem;
+    bottom: 0.7rem;
+  }
+  .decor-slot--ink {
+    left: 1.4rem;
+    bottom: 0.7rem;
+    z-index: 1;
+    opacity: 0.9;
+  }
+  .decor-slot--candle {
+    right: 1.8rem;
+    bottom: 0.7rem;
+    z-index: 5;
+  }
+
+  .add-slot {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 152px;
+    height: 228px;
+    flex: 0 0 auto;
+    border: 1px dashed color-mix(in srgb, var(--c-brass) 38%, transparent);
+    border-radius: 2px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--c-brass) 4%, transparent), transparent),
+      color-mix(in srgb, var(--c-paper) 20%, transparent);
+    color: var(--c-faint);
+    transition:
+      border-color 260ms ease,
+      background-color 260ms ease,
+      transform 300ms ease;
+    transform: translateY(-0.2rem) rotate(0.7deg);
+  }
+  .add-slot:hover {
+    border-color: color-mix(in srgb, var(--c-brass) 70%, transparent);
+    background: color-mix(in srgb, var(--c-brass) 7%, transparent);
+    transform: translateY(-0.55rem) rotate(0deg);
+  }
+  .add-slot__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    text-align: center;
+    padding: 1rem;
+  }
+  .add-slot__plus {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 1px solid color-mix(in srgb, var(--c-brass) 36%, transparent);
+    border-radius: 50%;
+    color: var(--c-brass);
+    transition: transform 260ms ease;
+  }
+  .add-slot:hover .add-slot__plus {
+    transform: rotate(90deg);
+  }
+  .add-slot__title {
+    font-family: var(--font-serif);
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    color: var(--c-muted);
+  }
+  .add-slot__hint {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    color: var(--c-faint);
+  }
+
+  /* -------------------------------------------------------------- trending */
+  .trending-row {
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: clamp(2rem, 6vw, 5.5rem);
+    min-height: 31rem;
+    padding: 3.6rem 4rem 1rem;
+  }
+  .trending-spot {
+    position: absolute;
+    left: 18%;
+    top: -4rem;
+    width: 32rem;
+    height: 34rem;
+    background: radial-gradient(closest-side, rgba(255, 199, 120, 0.18), transparent 70%);
+    pointer-events: none;
+  }
+  .trending-book {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    z-index: 2;
+  }
+  .feature-card {
+    position: relative;
+    width: min(21rem, 36vw);
+    padding: 1.7rem 1.7rem 1.5rem;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.3), transparent 50%),
+      url("/textures/paper.jpg") center / cover;
+    color: #332a1f;
+    box-shadow:
+      0 30px 60px -24px rgba(0, 0, 0, 0.65),
+      0 2px 6px rgba(0, 0, 0, 0.3);
+    transform: rotate(-1.2deg) translateY(-0.5rem);
+    border-radius: 1px;
+    z-index: 4;
+  }
+  .feature-card::after {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid rgba(123, 89, 46, 0.22);
+    pointer-events: none;
+  }
+  .feature-card__pin {
+    position: absolute;
+    top: -0.42rem;
+    left: 50%;
+    width: 0.62rem;
+    height: 0.62rem;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle at 34% 28%, #f7dfae, #9c753d 58%, #4f3518);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
+  }
+  .feature-card .eyebrow {
+    color: #8d6534;
+    margin: 0 0 0.7rem;
+  }
+  .feature-card h3 {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1.45rem;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    color: #2b2117;
+  }
+  .feature-subtitle {
+    margin: 0.35rem 0 0;
+    font-family: var(--font-serif);
+    font-size: 0.7rem;
+    line-height: 1.7;
+    color: #6e5941;
+  }
+  .feature-desc {
+    margin: 0.9rem 0 0;
+    font-family: var(--font-serif);
+    font-size: 0.76rem;
+    line-height: 1.9;
+    color: #534330;
+  }
+  .feature-card blockquote {
+    margin: 1rem 0;
+    padding: 0.7rem 0 0.7rem 0.85rem;
+    border-left: 2px solid rgba(141, 101, 52, 0.5);
+    font-family: var(--font-serif);
+    font-size: 0.78rem;
+    line-height: 1.85;
+    color: #5a452c;
+  }
+  .feature-card blockquote span {
+    color: #a77c43;
+    font-size: 1.3rem;
+    line-height: 0;
+    margin-right: 0.1rem;
+  }
+  .feature-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.7rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(123, 89, 46, 0.2);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    color: #806743;
+  }
+  .feature-meta span + span::before {
+    content: "·";
+    margin-right: 0.7rem;
+    color: #a58355;
+  }
+  .feature-actions {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.1rem;
+  }
+  .feature-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-serif);
+    font-size: 0.78rem;
+    color: #6d4a24;
+    border-bottom: 1px solid rgba(109, 74, 36, 0.35);
+    padding-bottom: 0.15rem;
+  }
+  .feature-link:hover {
+    color: #3d2a15;
+    border-color: #3d2a15;
+  }
+  .feature-author {
+    font-family: var(--font-serif);
+    font-size: 0.62rem;
+    color: #8b7356;
+  }
+  .trending-lamp {
+    position: absolute;
+    right: 1.4rem;
+    bottom: 0.7rem;
+    z-index: 3;
+    opacity: 0.9;
+  }
+
+  /* ---------------------------------------------------------------- plank */
+  .shelf-plank {
+    position: relative;
+    z-index: 3;
+    height: 1.55rem;
+    margin-top: -0.1rem;
+    background:
+      linear-gradient(180deg, rgba(255, 214, 150, 0.22), transparent 24%),
+      url("/textures/wood-shelf.jpg") center 42% / cover;
+    border-top: 1px solid rgba(255, 219, 160, 0.32);
+    box-shadow:
+      0 6px 12px -6px rgba(0, 0, 0, 0.6),
+      0 1px 0 rgba(255, 226, 176, 0.12);
+    border-radius: 1px;
+  }
+  .plank-face {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 0.72rem;
+    background:
+      linear-gradient(180deg, rgba(255, 217, 158, 0.19), transparent 20%),
+      linear-gradient(180deg, #55351f, #2a180e);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 218, 158, 0.26),
+      0 8px 14px rgba(0, 0, 0, 0.42);
+    border-radius: 0 0 2px 2px;
+  }
+  .plank-label {
+    position: absolute;
+    left: 1.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    padding: 0.16rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+    letter-spacing: 0.16em;
+    color: rgba(32, 20, 10, 0.82);
+    background: linear-gradient(180deg, #dcc08a, #a88650);
+    border-radius: 1px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 244, 214, 0.7),
+      0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+  .plank-highlight {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 237, 199, 0.16), transparent 36%, rgba(0, 0, 0, 0.24));
+    pointer-events: none;
+  }
+
+  .shelf-under {
+    height: 2.4rem;
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 72%);
+    filter: blur(3px);
+    transform: scaleX(0.96);
+  }
+
+  .shelf-bracket {
+    position: absolute;
+    bottom: 1.55rem;
+    width: 1.4rem;
+    height: 2.2rem;
+    border-left: 2px solid rgba(164, 125, 72, 0.5);
+    border-bottom: 2px solid rgba(164, 125, 72, 0.5);
+    z-index: 1;
+    opacity: 0.55;
+  }
+  .shelf-bracket--left {
+    left: 0.4rem;
+    transform: skewX(-13deg);
+  }
+  .shelf-bracket--right {
+    right: 0.4rem;
+    transform: scaleX(-1) skewX(-13deg);
+  }
+
+  @media (max-width: 1360px) {
+    .shelf-row {
+      gap: 0.55rem;
+      padding-inline: 3.4rem;
+      overflow-x: auto;
+      justify-content: flex-start;
+      scrollbar-width: none;
+      scroll-snap-type: x proximity;
+    }
+    .shelf-row::-webkit-scrollbar {
+      display: none;
+    }
+    .shelf-row :global(.book-obj) {
+      scroll-snap-align: center;
+    }
+    .decor-slot--plant,
+    .decor-slot--ink {
+      position: relative;
+      left: auto;
+      bottom: auto;
+      flex: 0 0 auto;
+      margin-right: 0.6rem;
+    }
+    .decor-slot--bookend,
+    .decor-slot--candle {
+      position: relative;
+      right: auto;
+      bottom: auto;
+      flex: 0 0 auto;
+      margin-left: 0.6rem;
+    }
+    .decor-slot--plant :global(.decor) {
+      width: 4.5rem;
+    }
+    .trending-row {
+      gap: 2.5rem;
+      padding-inline: 3rem;
+    }
+  }
+
+  @media (max-width: 920px) {
+    .shelf-head {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    .head-meta {
+      display: none;
+    }
+    .ghost-numeral {
+      font-size: 6.5rem;
+    }
+    .shelf-row {
+      padding-inline: 2.4rem;
+    }
+    .trending-row {
+      flex-direction: column;
+      align-items: center;
+      gap: 1.4rem;
+      padding: 2.8rem 2rem 1rem;
+      min-height: 0;
+    }
+    .trending-book {
+      transform: scale(0.9);
+      margin-bottom: -1.5rem;
+    }
+    .feature-card {
+      width: min(26rem, 88vw);
+      transform: rotate(-0.8deg);
+    }
+    .trending-lamp {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .shelf-section {
+      padding-top: 3.2rem;
+    }
+    .shelf-section + .shelf-section {
+      padding-top: 3.8rem;
+    }
+    .shelf-head {
+      padding-bottom: 1.5rem;
+    }
+    .head-title {
+      font-size: 1.75rem;
+    }
+    .head-desc {
+      font-size: 0.8rem;
+    }
+    .shelf-row {
+      padding: 2.4rem 1.6rem 0.7rem;
+      gap: 0.5rem;
+    }
+    .shelf-back {
+      bottom: 2.5rem;
+    }
+    .add-slot {
+      width: 138px;
+      height: 206px;
+    }
+    .feature-card {
+      padding: 1.35rem;
+    }
+    .feature-card h3 {
+      font-size: 1.25rem;
+    }
+    .plank-label {
+      display: none;
+    }
+    .decor-slot--plant {
+      display: none;
+    }
+    .decor-slot--ink {
+      display: none;
+    }
+    .shelf-bracket {
+      display: none;
+    }
+  }
+</style>

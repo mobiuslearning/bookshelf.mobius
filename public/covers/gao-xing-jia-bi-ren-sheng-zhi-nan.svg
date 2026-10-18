@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7f1e2"/>
+      <stop offset="1" stop-color="#e8ddc4"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#48607f"/>
+      <stop offset="1" stop-color="#273e5c"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.07"/></feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="600" height="900" fill="url(#paper)"/>
+  <rect width="600" height="900" filter="url(#grain)" opacity="0.6"/>
+  <rect x="0" y="0" width="600" height="96" fill="#2f4a6d"/>
+  <text x="44" y="60" font-family="'Cormorant Garamond',Georgia,serif" font-size="17" letter-spacing="5" fill="#f2e8d4">NOW · 2026</text>
+  <text x="556" y="60" text-anchor="end" font-family="'Songti SC','Noto Serif SC',serif" font-size="15" fill="#f2e8d4" opacity="0.8">新书上架</text>
+  <g transform="translate(48 138)">
+    <text font-family="'Songti SC','Noto Serif SC',serif" font-size="92" font-weight="700" fill="#2f4a6d">
+      <tspan x="0" y="0">高性价比</tspan>
+      <tspan x="0" y="106">人生指南</tspan>
+    </text>
+  </g>
+  <rect x="48" y="300" width="88" height="5" fill="#b04a35"/>
+  <text x="48" y="352" font-family="'Songti SC','Noto Serif SC',serif" font-size="20" fill="#2a4362">用最少的钱、时间和精力</text>
+  <text x="48" y="386" font-family="'Songti SC','Noto Serif SC',serif" font-size="20" fill="#2a4362">换回最多的寿命、金钱和自由</text>
+  <g font-family="'IBM Plex Mono','Songti SC',monospace" font-size="13" fill="#2f4a6d">
+    <rect x="48" y="444" width="142" height="34" rx="17" fill="none" stroke="#2f4a6d" stroke-width="1" opacity="0.45"/>
+    <text x="119" y="466" text-anchor="middle">765 条建议</text>
+    <rect x="204" y="444" width="150" height="34" rx="17" fill="none" stroke="#2f4a6d" stroke-width="1" opacity="0.45"/>
+    <text x="279" y="466" text-anchor="middle">31 节 · 全文</text>
+    <rect x="368" y="444" width="132" height="34" rx="17" fill="none" stroke="#2f4a6d" stroke-width="1" opacity="0.45"/>
+    <text x="434" y="466" text-anchor="middle">CC BY 4.0</text>
+  </g>
+  <g transform="translate(48 560)">
+    <rect width="504" height="150" fill="#2f4a6d"/>
+    <text x="26" y="46" font-family="'Songti SC','Noto Serif SC',serif" font-size="18" fill="#f2e8d4" opacity="0.75">一本可以随时翻查的</text>
+    <text x="26" y="86" font-family="'Songti SC','Noto Serif SC',serif" font-size="34" font-weight="600" fill="#f2e8d4">日常决策手册</text>
+    <text x="26" y="120" font-family="'Cormorant Garamond',Georgia,serif" font-size="13" letter-spacing="3" fill="#f2e8d4" opacity="0.7">A FIELD GUIDE TO A BETTER LIFE</text>
+  </g>
+  <text x="48" y="790" font-family="'Songti SC','Noto Serif SC',serif" font-size="17" fill="#2f4a6d">eternity4719 著</text>
+  <text x="48" y="824" font-family="'Cormorant Garamond',Georgia,serif" font-size="13" letter-spacing="4" fill="#2f4a6d" opacity="0.65">THE WOODEN SHELF · 木間書齋</text>
+  <g transform="translate(512 782)">
+    <rect x="-30" y="-30" width="60" height="60" fill="#b04a35"/>
+    <text x="0" y="8" text-anchor="middle" font-family="'Songti SC','Noto Serif SC',serif" font-size="26" fill="#f7f1e2">热</text>
+  </g>
+  <rect width="600" height="900" fill="none" stroke="#000" stroke-width="14" opacity="0.08"/>
+</svg>

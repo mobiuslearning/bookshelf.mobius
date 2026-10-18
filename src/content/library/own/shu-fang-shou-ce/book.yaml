@@ -1,0 +1,21 @@
+slug: shu-fang-shou-ce
+title: 添书记
+author: 木间主人
+category: own
+format: pdf
+access: full
+year: '2026'
+description: 一本关于怎样把书放上书架的小册子。也关于木头、纸页和光。
+cover: /covers/shu-fang-shou-ce.svg
+accent: '#6b6a3c'
+tags:
+  - 书房
+  - 手册
+  - PDF
+featured: false
+order: 4
+status: shelved
+motif: lantern
+file: /library/shu-fang-shou-ce/tian-shu-ji.pdf
+fileLabel: 下载 PDF
+note: 这本小册子本身就是用 PDF 上架的书，用来演示 PDF 藏本的翻阅与下载。

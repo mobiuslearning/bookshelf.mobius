@@ -1,0 +1,24 @@
+slug: lunyu
+title: 论语
+author: 孔子及弟子
+category: classics
+format: markdown
+access: excerpt
+year: 春秋
+description: 孔子和弟子的日常对答。没有系统的大道理，只有一句一句关于怎么过日子的提醒。
+cover: /covers/lunyu.svg
+accent: "#72563a"
+tags:
+  - 儒家
+  - 哲学
+  - 修养
+order: 5
+motif: window
+readingTime: 约 9 分钟
+source:
+  label: 中国哲学书电子化计划 · 论语
+  url: https://ctext.org/analects/zh
+license:
+  name: 公版作品
+  url: https://ctext.org/analects/zh
+note: 本站收录导读与公版书摘，全文可在 CText 免费阅读。

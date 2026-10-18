@@ -1,0 +1,463 @@
+---
+import { site, navLinks, categories } from "../data/site";
+import Icon from "./Icon.astro";
+---
+
+<header class="site-header" data-site-header>
+  <div class="nav-inner shell">
+    <a class="brand" href="/">
+      <span class="seal" aria-hidden="true">木</span>
+      <span class="brand-text">
+        <span class="brand-cn">{site.name}</span>
+        <span class="brand-en">{site.nameEn}</span>
+      </span>
+    </a>
+
+    <nav class="desktop-nav" aria-label="主导航">
+      {navLinks.map((link) => (
+        <a href={link.href} class="nav-link">{link.label}</a>
+      ))}
+    </nav>
+
+    <div class="nav-actions">
+      <button class="search-trigger" type="button" data-search-open>
+        <Icon name="search" size={17} />
+        <span class="search-label">搜索</span>
+        <kbd>⌘K</kbd>
+      </button>
+
+      <button class="icon-btn theme-btn" type="button" data-theme-toggle aria-label="切换主题">
+        <span class="theme-icon theme-icon--night"><Icon name="moon" size={18} /></span>
+        <span class="theme-icon theme-icon--day"><Icon name="sun" size={18} /></span>
+      </button>
+
+      <button
+        class="icon-btn menu-btn"
+        type="button"
+        data-menu-toggle
+        aria-label="打开菜单"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+      >
+        <span class="menu-icon"><Icon name="menu" size={20} /></span>
+        <span class="close-icon"><Icon name="close" size={20} /></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile-panel" id="mobile-menu" data-mobile-nav>
+    <div class="mobile-panel__head">
+      <span class="eyebrow">THE WOODEN SHELF</span>
+      <button class="icon-btn" type="button" data-menu-close aria-label="关闭菜单">
+        <Icon name="close" size={20} />
+      </button>
+    </div>
+
+    <nav class="mobile-primary" aria-label="移动端主导航">
+      {categories.map((category) => (
+        <a href={`/#${category.key}`}>
+          <span class="mobile-numeral">{category.numeral}</span>
+          <span class="mobile-label">{category.label}</span>
+          <span class="mobile-en">{category.labelEn}</span>
+        </a>
+      ))}
+    </nav>
+
+    <div class="mobile-secondary">
+      <a href="/about">关于这间书房 <Icon name="arrow-right" size={15} /></a>
+      <a href="/about#add-book">怎样添一本书 <Icon name="arrow-right" size={15} /></a>
+      <a href={site.social.rss}>订阅更新 <Icon name="rss" size={15} /></a>
+    </div>
+
+    <p class="mobile-foot">一室木香，半架闲书。<br />{site.name} · {site.startYear}</p>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 90;
+    height: var(--header-h);
+    transition:
+      background-color 300ms ease,
+      border-color 300ms ease,
+      backdrop-filter 300ms ease;
+    border-bottom: 1px solid transparent;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, #0b0705 82%, transparent),
+      transparent
+    );
+  }
+
+  .site-header.is-scrolled {
+    background: color-mix(in srgb, var(--c-paper) 86%, transparent);
+    border-bottom-color: var(--c-line);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+  }
+  /* A backdrop-filter on the fixed header would become the containing block
+     for the mobile panel, clipping it to the header height. */
+  .site-header.is-menu-open {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .nav-inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex: 0 0 auto;
+  }
+  .seal {
+    display: grid;
+    place-items: center;
+    width: 2.15rem;
+    height: 2.15rem;
+    border: 1px solid color-mix(in srgb, var(--c-brass) 68%, transparent);
+    color: var(--c-brass);
+    font-family: var(--font-serif);
+    font-size: 1.12rem;
+    line-height: 1;
+    transform: rotate(-2deg);
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent),
+      color-mix(in srgb, #1a100b 66%, transparent);
+    box-shadow:
+      inset 0 0 0 3px color-mix(in srgb, var(--c-paper) 55%, transparent),
+      0 2px 12px rgba(0, 0, 0, 0.28);
+    transition:
+      transform 300ms ease,
+      border-color 300ms ease;
+  }
+  .brand:hover .seal {
+    transform: rotate(1deg) scale(1.04);
+    border-color: var(--c-brass);
+  }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    line-height: 1;
+  }
+  .brand-cn {
+    font-family: var(--font-serif);
+    font-size: 1.02rem;
+    letter-spacing: 0.16em;
+    color: var(--c-ink);
+    font-weight: 600;
+  }
+  .brand-en {
+    font-family: var(--font-display);
+    font-size: 0.56rem;
+    letter-spacing: 0.24em;
+    color: var(--c-brass);
+    opacity: 0.86;
+  }
+
+  .desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: 1.9rem;
+    margin-left: 1.4rem;
+  }
+  .nav-link {
+    position: relative;
+    padding: 0.35rem 0;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    color: color-mix(in srgb, var(--c-ink) 82%, transparent);
+    transition: color 200ms ease;
+  }
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 100%;
+    bottom: 0;
+    height: 1px;
+    background: var(--c-brass);
+    transition: right 260ms ease;
+  }
+  .nav-link:hover {
+    color: var(--c-brass);
+  }
+  .nav-link:hover::after {
+    right: 0;
+  }
+
+  .nav-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .search-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    height: 2.15rem;
+    padding: 0 0.55rem 0 0.7rem;
+    border: 1px solid var(--c-line);
+    background: color-mix(in srgb, var(--c-panel) 38%, transparent);
+    color: var(--c-muted);
+    border-radius: 2px;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition:
+      color 200ms ease,
+      border-color 200ms ease,
+      background-color 200ms ease;
+    backdrop-filter: blur(8px);
+  }
+  .search-trigger:hover {
+    color: var(--c-ink);
+    border-color: color-mix(in srgb, var(--c-brass) 46%, transparent);
+    background: color-mix(in srgb, var(--c-brass) 8%, transparent);
+  }
+  .search-trigger kbd {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    line-height: 1;
+    padding: 0.22rem 0.28rem;
+    color: var(--c-faint);
+    border: 1px solid var(--c-line);
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--c-paper) 70%, transparent);
+  }
+
+  .icon-btn {
+    display: grid;
+    place-items: center;
+    width: 2.15rem;
+    height: 2.15rem;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--c-muted);
+    cursor: pointer;
+    transition:
+      color 200ms ease,
+      border-color 200ms ease,
+      background-color 200ms ease,
+      transform 200ms ease;
+  }
+  .icon-btn:hover {
+    color: var(--c-brass);
+    border-color: var(--c-line);
+    background: color-mix(in srgb, var(--c-brass) 7%, transparent);
+    transform: translateY(-1px);
+  }
+
+  .theme-icon {
+    grid-area: 1 / 1;
+    display: grid;
+    place-items: center;
+    transition:
+      opacity 250ms ease,
+      transform 350ms ease;
+  }
+  .theme-icon--day {
+    opacity: 0;
+    transform: rotate(-35deg) scale(0.7);
+  }
+  :global([data-theme="day"]) .theme-icon--night {
+    opacity: 0;
+    transform: rotate(35deg) scale(0.7);
+  }
+  :global([data-theme="day"]) .theme-icon--day {
+    opacity: 1;
+    transform: none;
+  }
+
+  .menu-btn {
+    display: none;
+  }
+  .menu-icon,
+  .close-icon {
+    grid-area: 1 / 1;
+    display: grid;
+    place-items: center;
+    transition:
+      opacity 200ms ease,
+      transform 300ms ease;
+  }
+  .close-icon {
+    opacity: 0;
+    transform: rotate(-40deg) scale(0.7);
+  }
+
+  /* ------------------------------------------------------------- mobile */
+  .mobile-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    display: none;
+    visibility: hidden;
+    flex-direction: column;
+    padding: 1.25rem 1.4rem 2rem;
+    background:
+      radial-gradient(60rem 40rem at 50% -10%, rgba(255, 190, 110, 0.12), transparent 60%),
+      color-mix(in srgb, var(--c-paper) 97%, black);
+    transform: translateY(-100%);
+    transition:
+      transform 380ms cubic-bezier(0.32, 0.72, 0, 1),
+      visibility 0s linear 380ms;
+    overflow-y: auto;
+  }
+  .mobile-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("/textures/noise.png");
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+  }
+  .mobile-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-h);
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--c-line);
+    position: relative;
+    z-index: 1;
+  }
+  .mobile-primary {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+  .mobile-primary a {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    align-items: baseline;
+    gap: 0.8rem;
+    padding: 1.05rem 0.2rem;
+    border-bottom: 1px solid var(--c-line);
+  }
+  .mobile-numeral {
+    font-family: var(--font-serif);
+    color: var(--c-brass);
+    font-size: 0.9rem;
+  }
+  .mobile-label {
+    font-family: var(--font-serif);
+    font-size: 1.65rem;
+    letter-spacing: 0.08em;
+  }
+  .mobile-en {
+    font-family: var(--font-display);
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+    color: var(--c-faint);
+  }
+  .mobile-secondary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+    margin-top: 2rem;
+    padding-left: 2.8rem;
+    position: relative;
+    z-index: 1;
+  }
+  .mobile-secondary a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.86rem;
+    color: var(--c-muted);
+  }
+  .mobile-foot {
+    margin-top: auto;
+    padding-top: 2.5rem;
+    font-family: var(--font-serif);
+    color: var(--c-faint);
+    font-size: 0.8rem;
+    line-height: 1.9;
+    position: relative;
+    z-index: 1;
+  }
+
+  :global(header.is-menu-open) .mobile-panel {
+    visibility: visible;
+    transform: none;
+    transition:
+      transform 380ms cubic-bezier(0.32, 0.72, 0, 1),
+      visibility 0s linear 0s;
+  }
+  :global(header.is-menu-open) .menu-icon {
+    opacity: 0;
+    transform: rotate(40deg) scale(0.7);
+  }
+  :global(header.is-menu-open) .close-icon {
+    opacity: 1;
+    transform: none;
+  }
+  :global(body.menu-open) {
+    overflow: hidden;
+  }
+
+  @media (max-width: 1080px) {
+    .desktop-nav {
+      gap: 1.35rem;
+      margin-left: 0.6rem;
+    }
+    .brand-en {
+      display: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .desktop-nav {
+      display: none;
+    }
+    .menu-btn {
+      display: grid;
+    }
+    .mobile-panel {
+      display: flex;
+    }
+    .nav-inner {
+      gap: 1rem;
+    }
+    .brand-text {
+      gap: 0.1rem;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .search-trigger {
+      width: 2.15rem;
+      padding: 0;
+      justify-content: center;
+    }
+    .search-label,
+    .search-trigger kbd {
+      display: none;
+    }
+    .brand-cn {
+      font-size: 0.95rem;
+      letter-spacing: 0.1em;
+    }
+    .seal {
+      width: 1.95rem;
+      height: 1.95rem;
+      font-size: 1rem;
+    }
+  }
+</style>

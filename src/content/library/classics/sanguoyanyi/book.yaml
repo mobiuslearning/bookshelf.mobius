@@ -1,0 +1,24 @@
+slug: sanguoyanyi
+title: 三国演义
+author: 罗贯中
+category: classics
+format: markdown
+access: excerpt
+year: 明
+description: 从桃园结义到三分归晋，英雄、谋士与普通人一起被卷进大势。读它，是读人心，也是读时势。
+cover: /covers/sanguoyanyi.svg
+accent: "#26384e"
+tags:
+  - 古典小说
+  - 历史
+  - 谋略
+order: 3
+motif: mountain
+readingTime: 约 11 分钟
+source:
+  label: 维基文库 · 三国演义
+  url: https://zh.wikisource.org/wiki/%E4%B8%89%E5%9C%8B%E6%BC%94%E7%BE%A9
+license:
+  name: 公版作品
+  url: https://zh.wikisource.org/wiki/%E4%B8%89%E5%9C%8B%E6%BC%94%E7%BE%A9
+note: 本站收录导读与公版书摘，全文可在维基文库免费阅读。

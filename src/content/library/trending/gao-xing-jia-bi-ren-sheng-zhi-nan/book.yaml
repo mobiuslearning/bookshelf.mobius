@@ -1,0 +1,29 @@
+slug: gao-xing-jia-bi-ren-sheng-zhi-nan
+title: 高性价比人生指南
+subtitle: 用最少的钱、时间和精力，换回最多的寿命、金钱和自由
+author: eternity4719
+category: trending
+format: markdown
+access: full
+year: '2026'
+description: 765 条关于健康、金钱、法律与生活选择的具体建议。每一条都尽量写明成本、收益与证据强弱，像一本可以随时翻查的日常决策手册。
+cover: /covers/gao-xing-jia-bi-ren-sheng-zhi-nan.svg
+accent: '#2f4a6d'
+tags:
+  - 生活
+  - 健康
+  - 法律
+  - 决策
+  - 省钱
+featured: true
+order: 1
+status: shelved
+readingTime: 约 45.6 小时
+note: 本书全文依 CC BY 4.0 许可收录，作者 eternity4719。书中内容为一般信息，不构成医疗、法律或财务建议；具体事项请以当地医生、律师和主管部门的说法为准。
+source:
+  label: GitHub · eternity4719/HowToLiveBetter
+  url: https://github.com/eternity4719/HowToLiveBetter
+license:
+  name: CC BY 4.0
+  url: https://creativecommons.org/licenses/by/4.0/
+motif: grid

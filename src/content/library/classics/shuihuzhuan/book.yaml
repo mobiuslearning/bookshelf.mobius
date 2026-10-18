@@ -1,0 +1,24 @@
+slug: shuihuzhuan
+title: 水浒传
+author: 施耐庵
+category: classics
+format: markdown
+access: excerpt
+year: 明
+description: 一百零八个人被逼上梁山。书里写的是义气，也是义气背后那些说不清的代价。
+cover: /covers/shuihuzhuan.svg
+accent: "#8a5a2b"
+tags:
+  - 古典小说
+  - 江湖
+  - 群像
+order: 4
+motif: wave
+readingTime: 约 11 分钟
+source:
+  label: 维基文库 · 水浒传
+  url: https://zh.wikisource.org/wiki/%E6%B0%B4%E6%BB%B8%E5%82%B3
+license:
+  name: 公版作品
+  url: https://zh.wikisource.org/wiki/%E6%B0%B4%E6%BB%B8%E5%82%B3
+note: 本站收录导读与公版书摘，全文可在维基文库免费阅读。

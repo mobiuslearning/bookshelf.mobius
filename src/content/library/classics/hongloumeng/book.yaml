@@ -1,0 +1,24 @@
+slug: hongloumeng
+title: 红楼梦
+author: 曹雪芹
+category: classics
+format: markdown
+access: excerpt
+year: 清 · 乾隆年间
+description: 一部关于繁华与幻灭的长篇小说。大观园里每一场宴席都亮着灯，灯下却早有人看见了散场。
+cover: /covers/hongloumeng.svg
+accent: "#7c2f35"
+tags:
+  - 古典小说
+  - 世情
+  - 悲剧
+order: 1
+motif: plum
+readingTime: 约 12 分钟
+source:
+  label: 维基文库 · 红楼梦
+  url: https://zh.wikisource.org/wiki/%E7%B4%85%E6%A8%93%E5%A4%A2
+license:
+  name: 公版作品
+  url: https://zh.wikisource.org/wiki/%E7%B4%85%E6%A8%93%E5%A4%A2
+note: 本站收录导读与公版书摘，全文可在维基文库免费阅读。

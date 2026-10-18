@@ -1,0 +1,161 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Icon from "../components/Icon.astro";
+---
+
+<BaseLayout title="这一格是空的" description="没有找到这一页。它可能被挪到了别的书架上。" noIndex={true}>
+  <main id="main" class="notfound">
+    <div class="notfound__wall" aria-hidden="true"></div>
+    <div class="shell notfound__inner">
+      <p class="eyebrow">404 · AN EMPTY SLOT</p>
+      <div class="empty-shelf" aria-hidden="true">
+        <span class="empty-shelf__book empty-shelf__book--one"></span>
+        <span class="empty-shelf__book empty-shelf__book--two"></span>
+        <span class="empty-shelf__gap"></span>
+        <span class="empty-shelf__book empty-shelf__book--three"></span>
+        <span class="empty-shelf__plank"></span>
+      </div>
+      <h1>这一格书架是空的。</h1>
+      <p class="notfound__copy">
+        可能是链接写错了，也可能是这本书被挪到了别处。<br />
+        回书房看看，或者用目录柜找一本书。
+      </p>
+      <div class="notfound__actions">
+        <a class="btn btn--brass" href="/">回到书架 <Icon name="arrow-right" size={15} /></a>
+        <button class="btn btn--ghost" type="button" data-search-open>搜索一本书</button>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .notfound {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: calc(var(--header-h) + 3rem) 0 5rem;
+    overflow: hidden;
+  }
+  .notfound__wall {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(50rem 38rem at 50% 10%, rgba(255, 194, 112, 0.12), transparent 66%),
+      linear-gradient(180deg, rgba(12, 8, 5, 0.78), rgba(12, 8, 5, 0.92)),
+      url("/textures/wood-wall.jpg") center / cover;
+  }
+  .notfound__inner {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .notfound__inner .eyebrow {
+    margin: 0 0 2rem;
+  }
+  .notfound h1 {
+    margin: 2.4rem 0 0;
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 4.5vw, 3.4rem);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+  }
+  .notfound__copy {
+    margin: 1.2rem 0 0;
+    font-family: var(--font-serif);
+    font-size: 0.82rem;
+    line-height: 2.1;
+    color: var(--c-muted);
+  }
+  .notfound__actions {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 2rem;
+  }
+
+  .empty-shelf {
+    position: relative;
+    width: min(22rem, 80vw);
+    height: 9.5rem;
+    border-bottom: 0.9rem solid #2a180e;
+    border-image: linear-gradient(180deg, #5d3b22, #24140c) 1;
+    box-shadow: 0 18px 30px -18px rgba(0, 0, 0, 0.8);
+  }
+  .empty-shelf__plank {
+    position: absolute;
+    left: -4%;
+    right: -4%;
+    bottom: -1.25rem;
+    height: 0.9rem;
+    background:
+      linear-gradient(180deg, rgba(255, 219, 160, 0.22), transparent 30%),
+      url("/textures/wood-shelf.jpg") center / cover;
+    box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.7);
+  }
+  .empty-shelf__book {
+    position: absolute;
+    bottom: 0;
+    width: 2.8rem;
+    border-radius: 1px;
+    box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.7);
+    opacity: 0.5;
+  }
+  .empty-shelf__book--one {
+    left: 8%;
+    height: 7.8rem;
+    background: linear-gradient(180deg, #6b3330, #351b19);
+    transform: rotate(-2deg);
+  }
+  .empty-shelf__book--two {
+    left: 23%;
+    height: 6.8rem;
+    background: linear-gradient(180deg, #3d4a43, #1d2521);
+    transform: rotate(1deg);
+  }
+  .empty-shelf__book--three {
+    right: 10%;
+    height: 7.4rem;
+    background: linear-gradient(180deg, #4b3a56, #241a2b);
+    transform: rotate(2deg);
+  }
+  .empty-shelf__gap {
+    position: absolute;
+    left: 48%;
+    bottom: 0;
+    width: 3.2rem;
+    height: 7rem;
+    border: 1px dashed rgba(213, 180, 124, 0.4);
+    transform: translateX(-50%);
+  }
+  .empty-shelf__gap::before,
+  .empty-shelf__gap::after {
+    content: "";
+    position: absolute;
+    background: rgba(213, 180, 124, 0.35);
+  }
+  .empty-shelf__gap::before {
+    left: 50%;
+    top: 30%;
+    width: 1px;
+    height: 3rem;
+    transform: translateX(-50%);
+  }
+  .empty-shelf__gap::after {
+    left: 26%;
+    right: 26%;
+    top: 44%;
+    height: 1px;
+  }
+
+  @media (max-width: 560px) {
+    .notfound__actions {
+      flex-direction: column;
+      width: 100%;
+    }
+    .notfound__actions .btn {
+      width: 100%;
+    }
+  }
+</style>

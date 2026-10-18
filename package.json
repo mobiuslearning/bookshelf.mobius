@@ -1,0 +1,38 @@
+{
+  "name": "wooden-shelf-library",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "木间书斋 — 一座用木头、纸页和光搭起来的私人书架",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "book:new": "node scripts/add-book.mjs",
+    "covers": "node scripts/make-covers.mjs",
+    "textures": "python3 scripts/make-textures.py",
+    "import:trending": "node scripts/import-trending.mjs",
+    "sample:pdf": "node scripts/make-sample-pdf.mjs",
+    "og": "node scripts/make-og.mjs"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource/cormorant-garamond": "^5.2.8",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@tailwindcss/postcss": "^4.3.3",
+    "astro": "^6.4.8",
+    "js-yaml": "^4.1.1",
+    "pdfjs-dist": "^6.4.299",
+    "rehype-sanitize": "^6.0.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/js-yaml": "^4.0.9",
+    "axe-core": "^4.14.0",
+    "playwright-core": "^1.64.1",
+    "typescript": "^6.0.3"
+  }
+}

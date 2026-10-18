@@ -1,0 +1,24 @@
+slug: zhuangzi
+title: 庄子
+author: 庄周
+category: classics
+format: markdown
+access: excerpt
+year: 战国
+description: 鲲鹏、蝴蝶、庖丁、濠梁之鱼。庄子把天地写成一个巨大的寓言，让人从窄处退一步。
+cover: /covers/zhuangzi.svg
+accent: "#3f5a58"
+tags:
+  - 道家
+  - 哲学
+  - 寓言
+order: 6
+motif: moon
+readingTime: 约 10 分钟
+source:
+  label: 中国哲学书电子化计划 · 庄子
+  url: https://ctext.org/zhuangzi/zh
+license:
+  name: 公版作品
+  url: https://ctext.org/zhuangzi/zh
+note: 本站收录导读与公版书摘，全文可在 CText 免费阅读。

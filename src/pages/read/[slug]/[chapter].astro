@@ -1,0 +1,1151 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Icon from "../../../components/Icon.astro";
+import {
+  getBooks,
+  getBookChapters,
+  readingMinutes,
+  readHref,
+  chapterSlug,
+  coverFor,
+  type Book,
+  type Chapter,
+} from "../../../lib/library";
+import { categoryMeta } from "../../../lib/library";
+import { render } from "astro:content";
+
+export async function getStaticPaths() {
+  const books = await getBooks();
+  const paths: Array<{
+    params: { slug: string; chapter: string };
+    props: { book: Book; chapter: Chapter };
+  }> = [];
+
+  for (const book of books) {
+    if (book.data.format !== "markdown") continue;
+    const chapters = await getBookChapters(book);
+    for (const chapter of chapters) {
+      paths.push({
+        params: {
+          slug: book.data.slug,
+          chapter: chapterSlug(chapter),
+        },
+        props: { book, chapter },
+      });
+    }
+  }
+  return paths;
+}
+
+interface Props {
+  book: Book;
+  chapter: Chapter;
+}
+
+const { book, chapter } = Astro.props;
+const chapters = await getBookChapters(book);
+const currentIndex = chapters.findIndex((item) => item.id === chapter.id);
+const previous = chapters[currentIndex - 1];
+const next = chapters[currentIndex + 1];
+const meta = categoryMeta(book.data.category);
+const { Content, headings } = await render(chapter);
+const outline = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 3);
+const sourceUrl = book.data.source?.url;
+const license = book.data.license;
+
+const chapterLabel = chapter.data.kind === "excerpt" ? "导读 · 书摘" : `第 ${String(currentIndex + 1).padStart(2, "0")} 篇`;
+
+// Imported chapters derive their summary from the first paragraph, so showing
+// both would repeat the opening sentence. Only show an editorial summary when
+// it is not simply the beginning of the body.
+const bodyStart = (chapter.body ?? "")
+  .replace(/[#>*_`\[\]()]/g, "")
+  .replace(/\s+/g, "")
+  .slice(0, 48);
+const summaryStart = (chapter.data.summary ?? "").replace(/\s+/g, "").slice(0, 24);
+const showSummary = Boolean(chapter.data.summary) && !bodyStart.startsWith(summaryStart);
+const title = chapter.data.title;
+const description = chapter.data.summary ?? book.data.description;
+---
+
+<BaseLayout
+  title={`${title} · ${book.data.title}`}
+  description={description}
+  bodyClass="reader-page"
+  hideFooter={true}
+>
+  <div class="reader-top" data-reader-top>
+    <div class="shell reader-top__inner">
+      <a class="reader-back" href={`/book/${book.data.slug}`}>
+        <Icon name="arrow-left" size={14} />
+        <span>返回书页</span>
+      </a>
+      <span class="reader-top__divider" aria-hidden="true"></span>
+      <a class="reader-top__book" href={`/book/${book.data.slug}`}>{book.data.title}</a>
+      <span class="reader-top__chapter">{chapterLabel}</span>
+
+      <div class="reader-tools">
+        <div class="font-tool" role="group" aria-label="调整字号">
+          <button type="button" data-font-size="-1" aria-label="缩小字号 A−">A−</button>
+          <span class="font-tool__value" data-font-value>100%</span>
+          <button type="button" data-font-size="1" aria-label="放大字号 A+">A+</button>
+        </div>
+
+        <button class="reader-theme" type="button" data-reader-theme-toggle aria-label="切换纸页与夜读">
+          <span class="reader-theme__paper"><Icon name="sun" size={15} /> 纸页</span>
+          <span class="reader-theme__night"><Icon name="moon" size={15} /> 夜读</span>
+        </button>
+
+        <a class="reader-toc-link" href="#toc">目录</a>
+      </div>
+    </div>
+    <div class="reader-progress" aria-hidden="true">
+      <span class="reader-progress__fill" data-progress></span>
+    </div>
+  </div>
+
+  <div class="reader-layout shell">
+    <aside class="reader-aside" id="toc">
+      <div class="reader-book">
+        <a class="reader-book__cover" href={`/book/${book.data.slug}`}>
+          <img src={coverFor(book)} alt={`${book.data.title} 封面`} width="600" height="900" />
+        </a>
+        <div class="reader-book__copy">
+          <span class="reader-book__category">{meta.numeral} · {meta.label}</span>
+          <a class="reader-book__title" href={`/book/${book.data.slug}`}>{book.data.title}</a>
+          <span class="reader-book__author">{book.data.author}</span>
+        </div>
+      </div>
+
+      <div class="reader-toc-head">
+        <span class="eyebrow">CONTENTS</span>
+        <span>{String(chapters.length).padStart(2, "0")} 篇</span>
+      </div>
+
+      <nav class="reader-toc" aria-label="本书目录">
+        <ol>
+          {chapters.map((item, index) => {
+            const isCurrent = item.id === chapter.id;
+            return (
+              <li class:list={{ "is-current": isCurrent }}>
+                <a href={readHref(book, item)} aria-current={isCurrent ? "page" : undefined}>
+                  <span class="reader-toc__num">{String(index + 1).padStart(2, "0")}</span>
+                  <span class="reader-toc__title">{item.data.title}</span>
+                  <span class="reader-toc__time">{readingMinutes(item.body)}′</span>
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+
+      <div class="reader-aside__foot">
+        {license && (
+          <p>
+            {license.name === "公版作品" ? (
+              "本书为公版作品"
+            ) : (
+              <>依 <a href={license.url} target="_blank" rel="noreferrer">{license.name}</a> 收录</>
+            )}
+          </p>
+        )}
+        {sourceUrl && (
+          <a href={sourceUrl} target="_blank" rel="noreferrer">
+            查看原项目 <Icon name="external" size={11} />
+          </a>
+        )}
+        <a href={`/#${book.data.category}`}>回到书架 <Icon name="arrow-right" size={11} /></a>
+      </div>
+    </aside>
+
+    <div class="reader-main">
+      <details class="mobile-toc">
+        <summary>
+          <span>目录 · {chapters.length} 篇</span>
+          <span class="mobile-toc__current">{chapterLabel} · {title}</span>
+          <Icon name="chevron" size={15} />
+        </summary>
+        <ol>
+          {chapters.map((item, index) => (
+            <li class:list={{ "is-current": item.id === chapter.id }}>
+              <a href={readHref(book, item)} aria-current={item.id === chapter.id ? "page" : undefined}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                {item.data.title}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </details>
+
+      <article class="reader-paper panel-paper" id="chapter-content">
+        <span class="paper-ribbon" aria-hidden="true"></span>
+        <header class="chapter-head">
+          <p class="eyebrow">
+            <span>{meta.labelEn}</span>
+            <span class="chapter-head__rule"></span>
+            {chapterLabel}
+          </p>
+          <h1>{title}</h1>
+          {showSummary && <p class="chapter-summary">{chapter.data.summary}</p>}
+          <div class="chapter-meta">
+            <span>{book.data.title}</span>
+            <span aria-hidden="true">·</span>
+            <span>{book.data.author}</span>
+            <span aria-hidden="true">·</span>
+            <span><Icon name="clock" size={12} /> 约 {readingMinutes(chapter.body)} 分钟</span>
+          </div>
+        </header>
+
+        {outline.length > 5 && (
+          <details class="chapter-outline">
+            <summary>
+              <span>本篇小节</span>
+              <span>{outline.length} 节</span>
+              <Icon name="chevron" size={13} />
+            </summary>
+            <ol>
+              {outline.map((heading) => (
+                <li>
+                  <a href={`#${heading.slug}`}>{heading.text}</a>
+                </li>
+              ))}
+            </ol>
+          </details>
+        )}
+
+        <div class="chapter-ornament" aria-hidden="true">
+          <span></span>
+          <i>❧</i>
+          <span></span>
+        </div>
+
+        <div class="prose-book chapter-body">
+          <Content />
+        </div>
+
+        <footer class="chapter-foot">
+          <div class="chapter-source">
+            {sourceUrl ? (
+              <p>
+                本文选自《{book.data.title}》，作者 {book.data.author}。
+                {license && (
+                  license.name === "公版作品" ? (
+                    <> 本书为公版作品。</>
+                  ) : (
+                    <> 依 <a href={license.url} target="_blank" rel="noreferrer">{license.name}</a> 许可收录。</>
+                  )
+                )}
+              </p>
+            ) : (
+              <p>
+                《{book.data.title}》 · {book.data.author}
+                {book.data.category === "own" ? " · 本站原创示例" : ""}
+              </p>
+            )}
+          </div>
+
+          <nav class="chapter-pager" aria-label="章节翻页">
+            {previous ? (
+              <a class="pager-link pager-link--prev" href={readHref(book, previous)}>
+                <span class="pager-dir"><Icon name="arrow-left" size={14} /> 上一篇</span>
+                <span class="pager-title">{previous.data.title}</span>
+              </a>
+            ) : (
+              <a class="pager-link pager-link--prev" href={`/book/${book.data.slug}`}>
+                <span class="pager-dir"><Icon name="arrow-left" size={14} /> 回到书页</span>
+                <span class="pager-title">{book.data.title}</span>
+              </a>
+            )}
+
+            {next ? (
+              <a class="pager-link pager-link--next" href={readHref(book, next)}>
+                <span class="pager-dir">下一篇 <Icon name="arrow-right" size={14} /></span>
+                <span class="pager-title">{next.data.title}</span>
+              </a>
+            ) : (
+              <a class="pager-link pager-link--next" href={`/book/${book.data.slug}`}>
+                <span class="pager-dir">读完了 <Icon name="book" size={14} /></span>
+                <span class="pager-title">回到《{book.data.title}》</span>
+              </a>
+            )}
+          </nav>
+        </footer>
+      </article>
+
+      <div class="reader-bottom">
+        <a href={`/book/${book.data.slug}`}><Icon name="book" size={14} /> 返回《{book.data.title}》</a>
+        <span>第 {currentIndex + 1} / {chapters.length} 篇</span>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const root = document.documentElement;
+  const steps = [0.95, 1.06, 1.17, 1.28, 1.4];
+  const valueEl = document.querySelector<HTMLElement>("[data-font-value]");
+  let currentSize = parseFloat(
+    getComputedStyle(root).getPropertyValue("--reader-size") || "1.06",
+  );
+  if (!steps.includes(currentSize)) currentSize = 1.06;
+
+  const applySize = (size: number, persist = false) => {
+    currentSize = Math.min(1.4, Math.max(0.95, Number(size.toFixed(2))));
+    root.style.setProperty("--reader-size", `${currentSize}rem`);
+    if (valueEl) valueEl.textContent = `${Math.round((currentSize / 1.06) * 100)}%`;
+    if (persist) {
+      try {
+        localStorage.setItem("reader-size", `${currentSize}rem`);
+        localStorage.setItem("reader-size-number", String(currentSize));
+      } catch {}
+    }
+  };
+  try {
+    const savedSize = localStorage.getItem("reader-size-number");
+    if (savedSize) currentSize = Number(savedSize);
+  } catch {}
+  applySize(currentSize);
+
+  document.querySelectorAll<HTMLButtonElement>("[data-font-size]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const direction = Number(button.dataset.fontSize);
+      const closest = steps.reduce((best, step) =>
+        Math.abs(step - currentSize) < Math.abs(best - currentSize) ? step : best,
+      steps[0]);
+      const index = steps.indexOf(closest);
+      applySize(steps[Math.min(steps.length - 1, Math.max(0, index + direction))], true);
+    });
+  });
+
+  // Paper / night reading mode.
+  const themeButton = document.querySelector<HTMLElement>("[data-reader-theme-toggle]");
+  const syncThemeButton = () => {
+    const night = root.dataset.readerTheme === "night";
+    themeButton?.setAttribute("aria-label", night ? "切换到纸页模式" : "切换到夜读模式");
+    themeButton?.setAttribute("aria-pressed", String(night));
+  };
+  syncThemeButton();
+  themeButton?.addEventListener("click", () => {
+    const night = root.dataset.readerTheme === "night";
+    root.dataset.readerTheme = night ? "paper" : "night";
+    try {
+      localStorage.setItem("reader-theme", root.dataset.readerTheme);
+    } catch {}
+    syncThemeButton();
+  });
+
+  // Reading progress.
+  const article = document.getElementById("chapter-content");
+  const fill = document.querySelector<HTMLElement>("[data-progress]");
+  let ticking = false;
+  const updateProgress = () => {
+    ticking = false;
+    if (!article || !fill) return;
+    const rect = article.getBoundingClientRect();
+    const total = rect.height - window.innerHeight * 0.35;
+    const passed = Math.min(Math.max(-rect.top + window.innerHeight * 0.2, 0), total);
+    fill.style.width = `${total > 0 ? (passed / total) * 100 : 0}%`;
+  };
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(updateProgress);
+  };
+  updateProgress();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+
+  // Keep the current chapter visible in a long table of contents.
+  const currentToc = document.querySelector<HTMLElement>(".reader-toc .is-current a");
+  const toc = document.querySelector<HTMLElement>(".reader-toc");
+  if (currentToc && toc) {
+    const top = currentToc.offsetTop - toc.clientHeight * 0.35;
+    toc.scrollTop = Math.max(0, top);
+  }
+
+  // Arrow keys turn pages when the reader is not typing.
+  const previous = document.querySelector<HTMLAnchorElement>(".pager-link--prev")?.href;
+  const next = document.querySelector<HTMLAnchorElement>(".pager-link--next")?.href;
+  window.addEventListener("keydown", (event) => {
+    const target = event.target as HTMLElement;
+    if (target.matches("input, textarea, select, [contenteditable]")) return;
+    if (event.key === "ArrowLeft" && previous) window.location.href = previous;
+    if (event.key === "ArrowRight" && next) window.location.href = next;
+  });
+</script>
+
+<style>
+  .reader-top {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 80;
+    margin-top: var(--header-h);
+    background: color-mix(in srgb, var(--c-paper) 76%, transparent);
+    backdrop-filter: blur(18px) saturate(120%);
+    -webkit-backdrop-filter: blur(18px) saturate(120%);
+    border-bottom: 1px solid var(--c-line);
+  }
+  .reader-top__inner {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    height: 3.1rem;
+  }
+  .reader-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-serif);
+    font-size: 0.7rem;
+    color: var(--c-muted);
+    transition: color 180ms ease;
+  }
+  .reader-back:hover {
+    color: var(--c-brass);
+  }
+  .reader-top__divider {
+    width: 1px;
+    height: 0.9rem;
+    background: var(--c-line);
+  }
+  .reader-top__book {
+    font-family: var(--font-serif);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--c-muted);
+    max-width: 16rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .reader-top__chapter {
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.08em;
+    color: var(--c-faint);
+    white-space: nowrap;
+  }
+  .reader-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+  .font-tool {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--c-line);
+    background: color-mix(in srgb, var(--c-paper) 40%, transparent);
+  }
+  .font-tool button {
+    width: 1.9rem;
+    height: 1.85rem;
+    border: 0;
+    background: transparent;
+    color: var(--c-muted);
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease;
+  }
+  .font-tool button:hover {
+    color: var(--c-brass);
+    background: color-mix(in srgb, var(--c-brass) 8%, transparent);
+  }
+  .font-tool__value {
+    min-width: 2.4rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    color: var(--c-faint);
+    border-left: 1px solid var(--c-line);
+    border-right: 1px solid var(--c-line);
+    line-height: 1.85rem;
+  }
+  .reader-theme {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    height: 1.9rem;
+    padding: 0 0.6rem;
+    border: 1px solid var(--c-line);
+    background: transparent;
+    color: var(--c-muted);
+    cursor: pointer;
+    font-family: var(--font-serif);
+    font-size: 0.62rem;
+    transition:
+      color 160ms ease,
+      border-color 160ms ease;
+  }
+  .reader-theme:hover {
+    color: var(--c-brass);
+    border-color: color-mix(in srgb, var(--c-brass) 50%, transparent);
+  }
+  .reader-theme span {
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .reader-theme__paper {
+    display: none;
+  }
+  .reader-theme__night {
+    display: inline-flex;
+  }
+  :global([data-reader-theme="night"]) .reader-theme__paper {
+    display: inline-flex;
+  }
+  :global([data-reader-theme="night"]) .reader-theme__night {
+    display: none;
+  }
+  .reader-toc-link {
+    display: inline-flex;
+    align-items: center;
+    height: 1.9rem;
+    padding: 0 0.6rem;
+    border: 1px solid var(--c-line);
+    font-family: var(--font-serif);
+    font-size: 0.62rem;
+    color: var(--c-muted);
+  }
+  .reader-toc-link:hover {
+    color: var(--c-brass);
+  }
+
+  .reader-progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: color-mix(in srgb, var(--c-brass) 14%, transparent);
+  }
+  .reader-progress__fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--c-brass-soft), var(--c-brass));
+    box-shadow: 0 0 8px rgba(213, 180, 124, 0.5);
+    transition: width 120ms linear;
+  }
+
+  /* --------------------------------------------------------------- layout */
+  .reader-layout {
+    display: grid;
+    grid-template-columns: 16.5rem minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    padding-top: 2.8rem;
+    padding-bottom: 4rem;
+    align-items: start;
+  }
+
+  .reader-aside {
+    position: sticky;
+    top: calc(var(--header-h) + 4.2rem);
+    max-height: calc(100vh - var(--header-h) - 5rem);
+    display: flex;
+    flex-direction: column;
+    padding-right: 1rem;
+    border-right: 1px solid var(--c-line);
+  }
+  .reader-book {
+    display: flex;
+    gap: 0.8rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--c-line);
+  }
+  .reader-book__cover {
+    width: 3.2rem;
+    height: 4.7rem;
+    flex: 0 0 auto;
+    overflow: hidden;
+    box-shadow: 0 6px 14px -7px rgba(0, 0, 0, 0.8);
+  }
+  .reader-book__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .reader-book__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+  .reader-book__category {
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+    letter-spacing: 0.12em;
+    color: var(--c-brass);
+  }
+  .reader-book__title {
+    font-family: var(--font-serif);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--c-ink);
+  }
+  .reader-book__author {
+    font-family: var(--font-serif);
+    font-size: 0.62rem;
+    color: var(--c-faint);
+  }
+  .reader-toc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 0 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    color: var(--c-faint);
+  }
+  .reader-toc {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    margin-right: -0.4rem;
+    padding-right: 0.4rem;
+  }
+  .reader-toc::-webkit-scrollbar {
+    width: 3px;
+  }
+  .reader-toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .reader-toc a {
+    display: grid;
+    grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+    gap: 0.55rem;
+    align-items: baseline;
+    padding: 0.48rem 0.4rem;
+    border-left: 1px solid transparent;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease;
+  }
+  .reader-toc a:hover {
+    background: color-mix(in srgb, var(--c-brass) 5%, transparent);
+  }
+  .reader-toc .is-current a {
+    border-left-color: var(--c-brass);
+    background: color-mix(in srgb, var(--c-brass) 8%, transparent);
+  }
+  .reader-toc__num {
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    color: var(--c-faint);
+  }
+  .reader-toc .is-current .reader-toc__num {
+    color: var(--c-brass);
+  }
+  .reader-toc__title {
+    font-family: var(--font-serif);
+    font-size: 0.68rem;
+    line-height: 1.55;
+    color: var(--c-muted);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .reader-toc .is-current .reader-toc__title {
+    color: var(--c-ink);
+  }
+  .reader-toc__time {
+    font-family: var(--font-mono);
+    font-size: 0.46rem;
+    color: var(--c-faint);
+  }
+  .reader-aside__foot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--c-line);
+    font-family: var(--font-serif);
+    font-size: 0.58rem;
+    color: var(--c-faint);
+  }
+  .reader-aside__foot p {
+    margin: 0;
+  }
+  .reader-aside__foot a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    width: fit-content;
+    color: var(--c-faint);
+    transition: color 160ms ease;
+  }
+  .reader-aside__foot a:hover {
+    color: var(--c-brass);
+  }
+  .reader-aside__foot a[target] {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+
+  .reader-main {
+    min-width: 0;
+  }
+
+  .mobile-toc {
+    display: none;
+  }
+
+  /* ---------------------------------------------------------------- paper */
+  .reader-paper {
+    position: relative;
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 4.5vw, 3.8rem) clamp(1.5rem, 5vw, 4.4rem) 3rem;
+    border-radius: 2px;
+    isolation: isolate;
+  }
+  .reader-paper::before,
+  .reader-paper::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    background: var(--c-paper-read-deep);
+    box-shadow: 0 20px 40px -30px rgba(0, 0, 0, 0.7);
+  }
+  .reader-paper::before {
+    inset: 5px -7px -8px 8px;
+    transform: rotate(0.3deg);
+    opacity: 0.7;
+  }
+  .reader-paper::after {
+    inset: 12px -12px -16px 16px;
+    transform: rotate(-0.5deg);
+    opacity: 0.35;
+  }
+  .paper-ribbon {
+    position: absolute;
+    top: -0.3rem;
+    right: 2.8rem;
+    width: 1.1rem;
+    height: 5.2rem;
+    background: linear-gradient(180deg, #9d3c31, #702a23);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%);
+    opacity: 0.82;
+    z-index: 2;
+  }
+
+  .chapter-head {
+    position: relative;
+  }
+  .chapter-head .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #8a6737;
+    margin: 0 0 1.2rem;
+  }
+  .chapter-head__rule {
+    width: 2.2rem;
+    height: 1px;
+    background: rgba(138, 103, 55, 0.45);
+  }
+  .chapter-head h1 {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(1.9rem, 3.7vw, 2.9rem);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    color: #2a2118;
+  }
+  .chapter-summary {
+    margin: 1.2rem 0 0;
+    padding-left: 1rem;
+    border-left: 2px solid rgba(138, 103, 55, 0.35);
+    font-family: var(--font-serif);
+    font-size: 0.82rem;
+    line-height: 2;
+    color: #6d5a43;
+  }
+  .chapter-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.06em;
+    color: #8c765b;
+  }
+  .chapter-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .chapter-outline {
+    margin: 1.8rem 0 0;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(115, 88, 51, 0.2);
+    background: rgba(255, 255, 255, 0.14);
+  }
+  .chapter-outline summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    font-family: var(--font-serif);
+    font-size: 0.72rem;
+    color: #6b5438;
+    list-style: none;
+  }
+  .chapter-outline summary::-webkit-details-marker {
+    display: none;
+  }
+  .chapter-outline summary span:nth-child(2) {
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    color: #8c765b;
+  }
+  .chapter-outline summary :global(svg) {
+    margin-left: auto;
+    transition: transform 200ms ease;
+  }
+  .chapter-outline[open] summary :global(svg) {
+    transform: rotate(90deg);
+  }
+  .chapter-outline ol {
+    max-height: 16rem;
+    overflow-y: auto;
+    margin: 0.8rem 0 0.2rem;
+    padding: 0 0 0 1.2rem;
+    columns: 2;
+    column-gap: 1.5rem;
+  }
+  .chapter-outline li {
+    break-inside: avoid;
+    margin: 0.2rem 0;
+    font-family: var(--font-serif);
+    font-size: 0.66rem;
+    line-height: 1.7;
+  }
+  .chapter-outline a {
+    color: #6b5438;
+  }
+  .chapter-outline a:hover {
+    color: #36250f;
+  }
+
+  .chapter-ornament {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin: 2.2rem 0 1.8rem;
+    color: rgba(138, 103, 55, 0.55);
+  }
+  .chapter-ornament span {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(138, 103, 55, 0.28));
+  }
+  .chapter-ornament span:last-child {
+    background: linear-gradient(90deg, rgba(138, 103, 55, 0.28), transparent);
+  }
+  .chapter-ornament i {
+    font-style: normal;
+    font-size: 0.8rem;
+  }
+
+  .chapter-body :global(h2:first-child),
+  .chapter-body :global(h3:first-child) {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .chapter-body :global(h3) {
+    scroll-margin-top: calc(var(--header-h) + 5.2rem);
+  }
+  .chapter-body :global(h2) {
+    scroll-margin-top: calc(var(--header-h) + 5.2rem);
+  }
+
+  .chapter-foot {
+    margin-top: 3.5rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid rgba(107, 84, 51, 0.24);
+  }
+  .chapter-source p {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 0.62rem;
+    line-height: 1.9;
+    color: #8a765a;
+  }
+  .chapter-source a {
+    color: #6d4c24;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+  .chapter-pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.4rem;
+  }
+  .pager-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(107, 84, 51, 0.22);
+    background: rgba(255, 255, 255, 0.12);
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease;
+  }
+  .pager-link:hover {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: rgba(107, 84, 51, 0.42);
+  }
+  .pager-link--next {
+    text-align: right;
+  }
+  .pager-dir {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.06em;
+    color: #8c765b;
+  }
+  .pager-link--next .pager-dir {
+    justify-content: flex-end;
+  }
+  .pager-title {
+    font-family: var(--font-serif);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: #3d2f20;
+  }
+
+  .reader-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 48rem;
+    margin: 1.6rem auto 0;
+    font-family: var(--font-serif);
+    font-size: 0.62rem;
+    color: var(--c-faint);
+  }
+  .reader-bottom a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--c-muted);
+    transition: color 160ms ease;
+  }
+  .reader-bottom a:hover {
+    color: var(--c-brass);
+  }
+
+  :global([data-reader-theme="night"]) .reader-paper {
+    background-color: #1c1712;
+    background-image:
+      linear-gradient(180deg, rgba(28, 23, 18, 0.88), rgba(28, 23, 18, 0.94)),
+      url("/textures/paper.jpg");
+    background-size: auto, cover;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 230, 190, 0.04),
+      0 40px 90px -40px rgba(0, 0, 0, 0.85);
+  }
+  :global([data-reader-theme="night"]) .chapter-head h1 {
+    color: #e3d4bb;
+  }
+  :global([data-reader-theme="night"]) .chapter-summary {
+    color: #b3a189;
+    border-left-color: rgba(201, 168, 106, 0.4);
+  }
+  :global([data-reader-theme="night"]) .chapter-meta {
+    color: #9b876d;
+  }
+  :global([data-reader-theme="night"]) .chapter-head .eyebrow {
+    color: #c0a06c;
+  }
+  :global([data-reader-theme="night"]) .chapter-outline {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(201, 168, 106, 0.18);
+  }
+  :global([data-reader-theme="night"]) .chapter-outline summary,
+  :global([data-reader-theme="night"]) .chapter-outline a {
+    color: #b8a488;
+  }
+  :global([data-reader-theme="night"]) .pager-link {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(201, 168, 106, 0.18);
+  }
+  :global([data-reader-theme="night"]) .pager-title {
+    color: #d4c3a6;
+  }
+  :global([data-reader-theme="night"]) .chapter-source p {
+    color: #9b876d;
+  }
+  :global([data-reader-theme="night"]) .chapter-ornament {
+    color: rgba(201, 168, 106, 0.5);
+  }
+  :global([data-reader-theme="night"]) .paper-ribbon {
+    opacity: 0.7;
+  }
+
+  @media (max-width: 1100px) {
+    .reader-layout {
+      grid-template-columns: 1fr;
+      gap: 1.6rem;
+    }
+    .reader-aside {
+      display: none;
+    }
+    .mobile-toc {
+      display: block;
+      max-width: 48rem;
+      margin: 0 auto;
+      border: 1px solid var(--c-line);
+      background: color-mix(in srgb, var(--c-panel) 68%, transparent);
+    }
+    .mobile-toc summary {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.8rem 1rem;
+      cursor: pointer;
+      list-style: none;
+      font-family: var(--font-serif);
+      font-size: 0.72rem;
+      color: var(--c-muted);
+    }
+    .mobile-toc summary::-webkit-details-marker {
+      display: none;
+    }
+    .mobile-toc summary :global(svg) {
+      margin-left: auto;
+      transition: transform 200ms ease;
+    }
+    .mobile-toc[open] summary :global(svg) {
+      transform: rotate(90deg);
+    }
+    .mobile-toc__current {
+      margin-left: auto;
+      max-width: 50%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.6rem;
+      color: var(--c-faint);
+    }
+    .mobile-toc ol {
+      max-height: 18rem;
+      overflow-y: auto;
+      list-style: none;
+      margin: 0;
+      padding: 0.2rem 0.4rem 0.6rem;
+      border-top: 1px solid var(--c-line);
+    }
+    .mobile-toc a {
+      display: flex;
+      gap: 0.7rem;
+      padding: 0.5rem 0.6rem;
+      font-family: var(--font-serif);
+      font-size: 0.7rem;
+      color: var(--c-muted);
+      border-bottom: 1px solid color-mix(in srgb, var(--c-line) 55%, transparent);
+    }
+    .mobile-toc a span {
+      font-family: var(--font-display);
+      color: var(--c-brass);
+      opacity: 0.7;
+    }
+    .mobile-toc .is-current a {
+      color: var(--c-ink);
+      background: color-mix(in srgb, var(--c-brass) 7%, transparent);
+    }
+    .reader-main {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .reader-paper::before,
+    .reader-paper::after {
+      display: none;
+    }
+    .reader-top__inner {
+      height: 2.8rem;
+      gap: 0.45rem;
+    }
+    .reader-top__book,
+    .reader-top__divider,
+    .reader-top__chapter {
+      display: none;
+    }
+    .reader-back span {
+      display: none;
+    }
+    .reader-back {
+      width: 1.9rem;
+      height: 1.9rem;
+      justify-content: center;
+      border: 1px solid var(--c-line);
+    }
+    .font-tool button {
+      width: 1.7rem;
+    }
+    .font-tool__value {
+      min-width: 2rem;
+    }
+    .reader-theme {
+      width: 1.9rem;
+      justify-content: center;
+      padding: 0;
+    }
+    .reader-theme span {
+      font-size: 0;
+    }
+    .reader-theme :global(svg) {
+      width: 15px;
+      height: 15px;
+    }
+    .reader-toc-link {
+      display: none;
+    }
+    .reader-layout {
+      padding-top: 1rem;
+      width: min(100% - 1rem, 82rem);
+    }
+    .reader-paper {
+      padding: 2rem 1.15rem 2.2rem;
+    }
+    .paper-ribbon {
+      right: 1.2rem;
+      height: 3.5rem;
+    }
+    .chapter-pager {
+      grid-template-columns: 1fr;
+    }
+    .chapter-outline ol {
+      columns: 1;
+    }
+    .reader-bottom {
+      padding: 0 0.4rem;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .reader-theme {
+      display: none;
+    }
+  }
+</style>
